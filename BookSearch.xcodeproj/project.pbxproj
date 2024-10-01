@@ -35,17 +35,17 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		A66088FAC9FA2C24BAC599E7 /* BookSearch */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = BookSearch;
+			path = App/BookSearch;
 			sourceTree = "<group>";
 		};
 		97808D72EC1AB78D942CF883 /* BookSearchTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = BookSearchTests;
+			path = App/BookSearchTests;
 			sourceTree = "<group>";
 		};
 		766DFFF54522B40B5D79CD44 /* BookSearchUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = BookSearchUITests;
+			path = App/BookSearchUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
