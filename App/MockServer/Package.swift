@@ -1,0 +1,33 @@
+// swift-tools-version: 6.0
+import PackageDescription
+
+let package = Package(
+    name: "MockServer",
+    platforms: [
+        .iOS(.v15)
+    ],
+    products: [
+        .library(name: "MockServer", targets: ["MockServer"])
+    ],
+    dependencies: [
+        .package(path: "../../Shared/SharedFoundation"),
+        .package(path: "../../Shared/TestSupport"),
+    ],
+    targets: [
+        .target(
+            name: "MockServer",
+            dependencies: [
+                .product(name: "SharedFoundation", package: "SharedFoundation")
+            ],
+            swiftSettings: [.swiftLanguageMode(.v6)]
+        ),
+        .testTarget(
+            name: "MockServerTests",
+            dependencies: [
+                "MockServer",
+                .product(name: "TestSupport", package: "TestSupport")
+            ],
+            swiftSettings: [.swiftLanguageMode(.v6)]
+        )
+    ]
+)
