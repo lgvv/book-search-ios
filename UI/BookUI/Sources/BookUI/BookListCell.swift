@@ -1,0 +1,141 @@
+import UIKit
+
+import BookModel
+import DesignSystem
+import ImageUI
+
+public final class BookListCell: UICollectionViewCell {
+
+    public static let coverSize = CGSize(width: 45, height: 80)
+
+    public var onToggleFavorite: (() -> Void)?
+
+    override public init(frame: CGRect) {
+        super.init(frame: frame)
+        configureUI()
+    }
+
+    @available(*, unavailable)
+    public required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    private let coverImageView: AsyncImageView = {
+        let imageView = AsyncImageView()
+        imageView.contentMode = .scaleAspectFill
+        imageView.clipsToBounds = true
+        imageView.layer.cornerRadius = 6
+        imageView.backgroundColor = .dsSurface
+        imageView.isAccessibilityElement = false
+        return imageView
+    }()
+
+    private let titleLabel: UILabel = {
+        let label = UILabel()
+        label.font = .preferredFont(forTextStyle: .headline)
+        label.adjustsFontForContentSizeCategory = true
+        label.textColor = .dsInk
+        label.numberOfLines = 2
+        return label
+    }()
+
+    private let subtitleLabel: UILabel = {
+        let label = UILabel()
+        label.font = .preferredFont(forTextStyle: .caption1)
+        label.adjustsFontForContentSizeCategory = true
+        label.textColor = .dsSubtleInk
+        label.numberOfLines = 1
+        return label
+    }()
+
+    private let captionLabel: UILabel = {
+        let label = UILabel()
+        label.font = .preferredFont(forTextStyle: .caption2)
+        label.adjustsFontForContentSizeCategory = true
+        label.textColor = .dsSubtleInk
+        label.numberOfLines = 1
+        label.isHidden = true
+        return label
+    }()
+
+    private let memoIndicator: UIImageView = {
+        let imageView = UIImageView(image: UIImage(systemName: "note.text"))
+        imageView.tintColor = .dsSubtleInk
+        imageView.contentMode = .scaleAspectFit
+        imageView.isUserInteractionEnabled = false
+        imageView.isAccessibilityElement = false
+        imageView.setContentHuggingPriority(.required, for: .horizontal)
+        imageView.isHidden = true
+        return imageView
+    }()
+
+    private lazy var favoriteButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.tintColor = .dsFavorite
+        button.setContentHuggingPriority(.required, for: .horizontal)
+        button.addAction(UIAction { [weak self] _ in
+            self?.onToggleFavorite?()
+        }, for: .touchUpInside)
+        return button
+    }()
+
+    private lazy var textStack: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [titleLabel, subtitleLabel, captionLabel])
+        stack.axis = .vertical
+        stack.spacing = 4
+        return stack
+    }()
+
+    private lazy var contentStack: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [coverImageView, textStack, memoIndicator, favoriteButton])
+        stack.axis = .horizontal
+        stack.spacing = 12
+        stack.alignment = .center
+        return stack
+    }()
+
+    private let separator: UIView = {
+        let view = UIView()
+        view.backgroundColor = .dsSeparator
+        return view
+    }()
+
+    private func configureUI() {
+        contentView.addSubview(contentStack)
+        contentStack.translatesAutoresizingMaskIntoConstraints = false
+
+        let bottom = contentStack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -10)
+        bottom.priority = UILayoutPriority(999)
+
+        NSLayoutConstraint.activate([
+            contentStack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
+            bottom,
+            contentStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            contentStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+        ])
+
+        contentView.addSubview(separator)
+        separator.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            separator.heightAnchor.constraint(equalToConstant: 0.5),
+            separator.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            separator.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            separator.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
+        ])
+
+        NSLayoutConstraint.activate([
+            coverImageView.widthAnchor.constraint(equalToConstant: Self.coverSize.width),
+            coverImageView.heightAnchor.constraint(equalToConstant: Self.coverSize.height)
+        ])
+
+        NSLayoutConstraint.activate([
+            memoIndicator.widthAnchor.constraint(equalToConstant: 22),
+            memoIndicator.heightAnchor.constraint(equalToConstant: 22)
+        ])
+
+        NSLayoutConstraint.activate([
+            favoriteButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 44),
+            favoriteButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 44)
+        ])
+    }
+}
