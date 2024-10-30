@@ -10,6 +10,52 @@ public final class BookListCell: UICollectionViewCell {
 
     public var onToggleFavorite: (() -> Void)?
 
+    public func configure(
+        with book: Book,
+        isFavorite: Bool,
+        hasMemo: Bool,
+        caption: String? = nil
+    ) {
+        titleLabel.text = book.title
+        subtitleLabel.text = [book.author, book.publisher]
+            .compactMap { $0 }
+            .joined(separator: " · ")
+        coverImageView.setImage(from: book.coverImageURL, targetSize: Self.coverSize)
+        favoriteButton.setImage(
+            UIImage(systemName: isFavorite ? "heart.fill" : "heart"),
+            for: .normal
+        )
+        memoIndicator.isHidden = !hasMemo
+
+        captionLabel.text = caption
+        captionLabel.isHidden = caption == nil
+
+        self.configureAccessibility(book: book, isFavorite: isFavorite, hasMemo: hasMemo, caption: caption)
+    }
+
+    private func configureAccessibility(book: Book, isFavorite: Bool, hasMemo: Bool, caption: String?) {
+        contentView.isAccessibilityElement = true
+        contentView.accessibilityTraits.insert(.button)
+
+        let details = [book.author, book.publisher, caption]
+            .compactMap { $0 }
+            .filter { !$0.isEmpty }
+        let states = [
+            isFavorite ? "즐겨찾기됨" : nil,
+            hasMemo ? "메모 있음" : nil
+        ].compactMap { $0 }
+
+        contentView.accessibilityLabel = ([book.title] + details + states).joined(separator: ", ")
+
+        let toggleTitle = isFavorite ? "즐겨찾기 해제" : "즐겨찾기 추가"
+        contentView.accessibilityCustomActions = [
+            UIAccessibilityCustomAction(name: toggleTitle) { [weak self] _ in
+                self?.onToggleFavorite?()
+                return true
+            }
+        ]
+    }
+
     override public init(frame: CGRect) {
         super.init(frame: frame)
         configureUI()
