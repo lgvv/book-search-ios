@@ -180,4 +180,67 @@ struct SearchReducer: Sendable {
         state.pagination = .loading(isFirstPage: nextPage == 1)
         return .search(query: state.query, page: nextPage)
     }
+
+    private func reduceFeedback(into state: inout State, action: Action.FeedbackAction) -> [Effect] {
+        switch action {
+        case let .searchResponse(requestQuery, result):
+            guard requestQuery == state.query else { return [] }
+
+            switch result {
+            case let .success(books, pageNo, totalCount, hasNext):
+                state.currentPage = pageNo
+                state.totalCount = totalCount
+
+                if pageNo == 1 {
+                    state.books = []
+                    state.seenBookIDs = []
+                    state.resultsQuery = requestQuery
+                }
+
+                let fresh = books.filter { state.seenBookIDs.insert($0.id).inserted }
+                state.books += fresh
+
+                let isLastPage = books.isEmpty
+                    || !hasNext
+                    || state.books.count >= totalCount
+                if isLastPage {
+                    state.pagination = .exhausted
+                    state.consecutiveEmptyPages = 0
+                    return []
+                }
+
+                if fresh.isEmpty {
+                    state.consecutiveEmptyPages += 1
+                    guard state.consecutiveEmptyPages < Self.maxConsecutiveEmptyPages else {
+                        state.pagination = .exhausted
+                        return []
+                    }
+                    return [Self.loadNextPage(into: &state)]
+                }
+
+                state.consecutiveEmptyPages = 0
+                state.pagination = .ready
+
+            case .failure:
+                if state.resultsQuery != state.query {
+                    state.books = []
+                    state.seenBookIDs = []
+                }
+                state.pagination = .failed
+            }
+            return []
+
+        case let .recentTermsLoaded(terms):
+            state.recentTerms = terms
+            return []
+
+        case let .favoritesChanged(isbns):
+            state.favoriteISBNs = isbns
+            return []
+
+        case let .memosChanged(isbns):
+            state.memoISBNs = isbns
+            return []
+        }
+    }
 }
