@@ -96,6 +96,79 @@ struct SearchReducer: Sendable {
         }
     }
 
+    private func reduceView(into state: inout State, action: Action.ViewAction) -> [Effect] {
+        switch action {
+        case .viewDidLoad:
+            return [
+                .loadRecentTerms,
+                .observeFavorites,
+                .observeMemos
+            ]
+
+        case let .queryChanged(rawQuery):
+            let query = rawQuery.trimmed
+            guard query != state.query else { return [] }
+            state.query = query
+            Self.resetPaging(&state)
+
+            guard !query.isEmpty else {
+                state.books = []
+                state.seenBookIDs = []
+                state.resultsQuery = ""
+                state.pagination = .idle
+                return [.cancel(.search)]
+            }
+
+            state.pagination = .loading(isFirstPage: true)
+            return [
+                .searchDebounced(query: query)
+            ]
+
+        case let .submitQuery(rawQuery):
+            let query = rawQuery.trimmed
+            guard !query.isEmpty else { return [] }
+
+            var effects: [Effect] = [.recordRecentTerm(query)]
+
+            guard query != state.query || state.books.isEmpty else { return effects }
+
+            state.query = query
+            Self.resetPaging(&state)
+            state.pagination = .loading(isFirstPage: true)
+            effects.append(.search(query: query, page: 1))
+            return effects
+
+        case .reachedNearBottom:
+            guard case .ready = state.pagination, !state.query.isEmpty else { return [] }
+            return [Self.loadNextPage(into: &state)]
+
+        case .retryPagination:
+            guard case .failed = state.pagination, !state.query.isEmpty else { return [] }
+            return [Self.loadNextPage(into: &state)]
+
+        case let .removeRecentTerm(term):
+            return [
+                .removeRecentTerm(term)
+            ]
+
+        case let .toggleFavorite(book):
+            let willBeFavorite = !state.favoriteISBNs.contains(book.isbn)
+            if willBeFavorite {
+                state.favoriteISBNs.insert(book.isbn)
+            } else {
+                state.favoriteISBNs.remove(book.isbn)
+            }
+            return [
+                .setFavorite(book, to: willBeFavorite)
+            ]
+
+        case let .selectBook(book):
+            return [
+                .delegate(.didSelectBook(book))
+            ]
+        }
+    }
+
     private static func resetPaging(_ state: inout State) {
         state.currentPage = 0
         state.totalCount = 0
