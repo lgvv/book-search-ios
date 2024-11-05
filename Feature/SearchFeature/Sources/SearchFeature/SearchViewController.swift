@@ -156,3 +156,113 @@ final class SearchViewController: UIViewController {
         emptyStateView.isHidden = state == nil
     }
 }
+
+extension SearchViewController {
+    private func createLayout() -> UICollectionViewCompositionalLayout {
+        let layout = UICollectionViewCompositionalLayout { [weak self] _, environment in
+            var configuration = UICollectionLayoutListConfiguration(appearance: .plain)
+            configuration.showsSeparators = false
+            configuration.backgroundColor = .dsBackground
+            if self?.store.state.isShowingRecents == true {
+                configuration.trailingSwipeActionsConfigurationProvider = { [weak self] indexPath in
+                    self?.recentTermSwipeActions(at: indexPath)
+                }
+            }
+            return NSCollectionLayoutSection.list(using: configuration, layoutEnvironment: environment)
+        }
+        return layout
+    }
+
+    private func configureDataSource() {
+        let bookRegistration = UICollectionView.CellRegistration<BookListCell, Book> { [weak self] cell, _, book in
+            guard let self else { return }
+            cell.configure(
+                with: book,
+                isFavorite: store.state.favoriteISBNs.contains(book.isbn),
+                hasMemo: store.state.memoISBNs.contains(book.isbn)
+            )
+            cell.onToggleFavorite = { [weak self] in
+                self?.store.send(.toggleFavorite(book))
+            }
+        }
+        let recentRegistration = UICollectionView.CellRegistration<UICollectionViewListCell, String> {
+            [weak self] cell, _, term in
+            var content = cell.defaultContentConfiguration()
+            content.text = term
+            content.image = UIImage(systemName: "clock")
+            content.imageProperties.tintColor = .secondaryLabel
+            cell.contentConfiguration = content
+
+            cell.accessibilityCustomActions = [
+                UIAccessibilityCustomAction(name: "삭제") { [weak self] _ in
+                    self?.store.send(.removeRecentTerm(term))
+                    return true
+                }
+            ]
+        }
+        let footerRegistration = UICollectionView.CellRegistration<PagingFooterCell, PagingFooterCell.Mode> {
+            [weak self] cell, _, mode in
+            cell.configure(mode: mode)
+            cell.onRetry = { [weak self] in
+                self?.store.send(.retryPagination)
+            }
+        }
+        dataSource = UICollectionViewDiffableDataSource<SearchSection, SearchItem>(
+            collectionView: collectionView
+        ) { collectionView, indexPath, item in
+            switch item {
+            case .book(let book):
+                collectionView.dequeueConfiguredReusableCell(using: bookRegistration, for: indexPath, item: book)
+            case .recentTerm(let term):
+                collectionView.dequeueConfiguredReusableCell(using: recentRegistration, for: indexPath, item: term)
+            case .pagingFooter(let mode):
+                collectionView.dequeueConfiguredReusableCell(using: footerRegistration, for: indexPath, item: mode)
+            }
+        }
+    }
+
+    private func applySnapshot(from old: SearchRender?, to new: SearchRender) {
+        let displayed = Set(dataSource?.snapshot().itemIdentifiers ?? [])
+
+        let changedISBNs = old.map { previous in
+            new.favoriteISBNs.symmetricDifference(previous.favoriteISBNs)
+                .union(new.memoISBNs.symmetricDifference(previous.memoISBNs))
+        } ?? []
+
+        var snapshot = NSDiffableDataSourceSnapshot<SearchSection, SearchItem>()
+        if new.isShowingRecents {
+            snapshot.appendSections([.recents])
+            snapshot.appendItems(new.recentTerms.map(SearchItem.recentTerm), toSection: .recents)
+        } else {
+            snapshot.appendSections([.results])
+            snapshot.appendItems(new.books.map(SearchItem.book), toSection: .results)
+            if let footer = new.footer {
+                snapshot.appendItems([.pagingFooter(footer)], toSection: .results)
+            }
+        }
+        snapshot.reconfigureItems(
+            snapshot.itemIdentifiers.filter { item in
+                guard case .book(let book) = item else { return false }
+                return displayed.contains(item) && changedISBNs.contains(book.isbn)
+            }
+        )
+        let queryChanged = old.map { $0.query != new.query } ?? false
+        dataSource?.apply(snapshot, animatingDifferences: false) { [weak self] in
+            guard queryChanged, let collectionView = self?.collectionView else { return }
+            collectionView.setContentOffset(
+                CGPoint(x: 0, y: -collectionView.adjustedContentInset.top),
+                animated: false
+            )
+        }
+        renderEmptyState(new.emptyState)
+    }
+
+    private func recentTermSwipeActions(at indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        guard case .recentTerm(let term) = dataSource?.itemIdentifier(for: indexPath) else { return nil }
+        let delete = UIContextualAction(style: .destructive, title: "삭제") { [weak self] _, _, completion in
+            self?.store.send(.removeRecentTerm(term))
+            completion(true)
+        }
+        return UISwipeActionsConfiguration(actions: [delete])
+    }
+}
