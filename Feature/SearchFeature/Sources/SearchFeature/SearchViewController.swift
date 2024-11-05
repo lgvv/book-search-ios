@@ -266,3 +266,63 @@ extension SearchViewController {
         return UISwipeActionsConfiguration(actions: [delete])
     }
 }
+
+extension SearchViewController: UISearchBarDelegate {
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        store.send(.submitQuery(searchBar.text ?? ""))
+        searchController.isActive = false
+        searchController.searchBar.text = store.state.query
+    }
+
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        store.send(.queryChanged(searchText))
+    }
+}
+
+extension SearchViewController: UICollectionViewDelegate {
+    func collectionView(
+        _ collectionView: UICollectionView,
+        willDisplay cell: UICollectionViewCell,
+        forItemAt indexPath: IndexPath
+    ) {
+        guard !store.state.isShowingRecents,
+              case .book = dataSource?.itemIdentifier(for: indexPath) else { return }
+        if indexPath.item >= store.state.books.count - 5 {
+            DispatchQueue.main.async { [weak self] in
+                self?.store.send(.reachedNearBottom)
+            }
+        }
+    }
+
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        collectionView.deselectItem(at: indexPath, animated: true)
+        switch dataSource?.itemIdentifier(for: indexPath) {
+        case .book(let book):
+            store.send(.selectBook(book))
+        case .recentTerm(let term):
+            searchController.searchBar.text = term
+            store.send(.submitQuery(term))
+        case .pagingFooter:
+            break
+        case nil:
+            break
+        }
+    }
+}
+
+extension SearchViewController: UICollectionViewDataSourcePrefetching {
+    func collectionView(_ collectionView: UICollectionView, prefetchItemsAt indexPaths: [IndexPath]) {
+        ImagePrefetcher.prefetch(coverURLs(at: indexPaths), targetSize: BookListCell.coverSize)
+    }
+
+    func collectionView(_ collectionView: UICollectionView, cancelPrefetchingForItemsAt indexPaths: [IndexPath]) {
+        ImagePrefetcher.cancel(coverURLs(at: indexPaths))
+    }
+
+    private func coverURLs(at indexPaths: [IndexPath]) -> [URL] {
+        indexPaths.compactMap { indexPath in
+            guard case .book(let book) = dataSource?.itemIdentifier(for: indexPath) else { return nil }
+            return book.coverImageURL
+        }
+    }
+}
