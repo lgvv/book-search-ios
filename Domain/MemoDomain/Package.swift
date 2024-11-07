@@ -8,12 +8,15 @@ let package = Package(
     ],
     products: [
         .library(name: "MemoModel", targets: ["MemoModel"]),
-        .library(name: "MemoCore", targets: ["MemoCore"])
+        .library(name: "MemoCore", targets: ["MemoCore"]),
+        .library(name: "MemoData", targets: ["MemoData"])
     ],
     dependencies: [
         .package(path: "../../Domain/BookDomain"),
         .package(path: "../../Shared/DependencyResolver"),
         .package(path: "../../Shared/SharedFoundation"),
+        .package(path: "../../Shared/Persistence"),
+        .package(path: "../../Shared/TestSupport"),
     ],
     targets: [
         .target(
@@ -30,6 +33,16 @@ let package = Package(
                 .product(name: "BookModel", package: "BookDomain"),
                 .product(name: "DependencyResolver", package: "DependencyResolver"),
                 .product(name: "SharedFoundation", package: "SharedFoundation")
+            ],
+            swiftSettings: [.swiftLanguageMode(.v6)]
+        ),
+        .target(
+            name: "MemoData",
+            dependencies: [
+                .product(name: "PersistenceInterface", package: "Persistence"),
+                "MemoModel",
+                "MemoCore",
+                .product(name: "BookModel", package: "BookDomain"),
             ],
             swiftSettings: [.swiftLanguageMode(.v6)]
         )
