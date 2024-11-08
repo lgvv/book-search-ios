@@ -10,6 +10,7 @@ let package = Package(
         .library(name: "MockServer", targets: ["MockServer"])
     ],
     dependencies: [
+        .package(path: "../../Shared/Persistence"),
         .package(path: "../../Shared/SharedFoundation"),
         .package(path: "../../Shared/TestSupport"),
     ],
@@ -17,6 +18,7 @@ let package = Package(
         .target(
             name: "MockServer",
             dependencies: [
+                .product(name: "PersistenceInterface", package: "Persistence"),
                 .product(name: "SharedFoundation", package: "SharedFoundation")
             ],
             swiftSettings: [.swiftLanguageMode(.v6)]
@@ -25,6 +27,8 @@ let package = Package(
             name: "MockServerTests",
             dependencies: [
                 "MockServer",
+                .product(name: "Persistence", package: "Persistence"),
+                .product(name: "PersistenceInterface", package: "Persistence"),
                 .product(name: "TestSupport", package: "TestSupport")
             ],
             swiftSettings: [.swiftLanguageMode(.v6)]
