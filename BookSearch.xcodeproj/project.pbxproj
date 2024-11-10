@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6EE6E2ED01F5476CB50E16A9 /* BookCore in Frameworks */ = {isa = PBXBuildFile; productRef = 36EE0F09DE9A48C4A33E72C1 /* BookCore */; };
+		9CAD46A6E3AD42E88B0B365A /* BookData in Frameworks */ = {isa = PBXBuildFile; productRef = F28AF33DD7974B3CA0E4FC54 /* BookData */; };
 		29A533EB6EDA4FCC93017A51 /* MockServer in Frameworks */ = {isa = PBXBuildFile; productRef = 6990513ADA3C4D46A292BA01 /* MockServer */; };
 		F3A36AFA33B64CF29E1BE0E8 /* ImageLoader in Frameworks */ = {isa = PBXBuildFile; productRef = B641D9750A874C748EE783FE /* ImageLoader */; };
 		DDD6B10FE3F64B68847ADB11 /* ImageLoaderContainer in Frameworks */ = {isa = PBXBuildFile; productRef = E9FE149E92934634B5C6C333 /* ImageLoaderContainer */; };
@@ -73,6 +75,8 @@
 				F3A36AFA33B64CF29E1BE0E8 /* ImageLoader in Frameworks */,
 				DDD6B10FE3F64B68847ADB11 /* ImageLoaderContainer in Frameworks */,
 				29A533EB6EDA4FCC93017A51 /* MockServer in Frameworks */,
+				6EE6E2ED01F5476CB50E16A9 /* BookCore in Frameworks */,
+				9CAD46A6E3AD42E88B0B365A /* BookData in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -116,6 +120,10 @@
 /* End PBXGroup section */
 
 /* Begin XCLocalSwiftPackageReference section */
+		E8EF13BC4ECE4D908DC5004E /* XCLocalSwiftPackageReference "../Domain/BookDomain" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "../Domain/BookDomain";
+		};
 		FFDA192C9A35462AB1D6AB7C /* XCLocalSwiftPackageReference "../App/MockServer" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = "../App/MockServer";
@@ -143,6 +151,16 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		36EE0F09DE9A48C4A33E72C1 /* BookCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E8EF13BC4ECE4D908DC5004E /* XCLocalSwiftPackageReference "../Domain/BookDomain" */;
+			productName = BookCore;
+		};
+		F28AF33DD7974B3CA0E4FC54 /* BookData */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E8EF13BC4ECE4D908DC5004E /* XCLocalSwiftPackageReference "../Domain/BookDomain" */;
+			productName = BookData;
+		};
 		6990513ADA3C4D46A292BA01 /* MockServer */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = FFDA192C9A35462AB1D6AB7C /* XCLocalSwiftPackageReference "../App/MockServer" */;
@@ -208,6 +226,8 @@
 			);
 			name = BookSearch;
 			packageProductDependencies = (
+				36EE0F09DE9A48C4A33E72C1 /* BookCore */,
+				F28AF33DD7974B3CA0E4FC54 /* BookData */,
 				6990513ADA3C4D46A292BA01 /* MockServer */,
 				B641D9750A874C748EE783FE /* ImageLoader */,
 				E9FE149E92934634B5C6C333 /* ImageLoaderContainer */,
@@ -297,6 +317,7 @@
 			mainGroup = D352F39616B53CDB2EA3F3E6;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				E8EF13BC4ECE4D908DC5004E /* XCLocalSwiftPackageReference "../Domain/BookDomain" */,
 				FFDA192C9A35462AB1D6AB7C /* XCLocalSwiftPackageReference "../App/MockServer" */,
 				DD026C9FF31C460283CCB431 /* XCLocalSwiftPackageReference "../Shared/ImageLoader" */,
 				42983C2738D641E9BF248ED6 /* XCLocalSwiftPackageReference "../Shared/Persistence" */,
