@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D4B6E96E1052431C80470242 /* DependencyResolver in Frameworks */ = {isa = PBXBuildFile; productRef = 44E856E3DBE240CCB3218B62 /* DependencyResolver */; };
 		F975CEC0863149E0991F7035 /* DesignSystem in Frameworks */ = {isa = PBXBuildFile; productRef = 48141198BCCB41308C97D651 /* DesignSystem */; };
 /* End PBXBuildFile section */
 
@@ -57,6 +58,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F975CEC0863149E0991F7035 /* DesignSystem in Frameworks */,
+				D4B6E96E1052431C80470242 /* DependencyResolver in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -100,6 +102,10 @@
 /* End PBXGroup section */
 
 /* Begin XCLocalSwiftPackageReference section */
+		41561DFBE36F43D4A29240B5 /* XCLocalSwiftPackageReference "../Shared/DependencyResolver" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "../Shared/DependencyResolver";
+		};
 		FF0FD0A7A2C34602BF9220A9 /* XCLocalSwiftPackageReference "../UI/DesignSystem" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = "../UI/DesignSystem";
@@ -107,6 +113,11 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		44E856E3DBE240CCB3218B62 /* DependencyResolver */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 41561DFBE36F43D4A29240B5 /* XCLocalSwiftPackageReference "../Shared/DependencyResolver" */;
+			productName = DependencyResolver;
+		};
 		48141198BCCB41308C97D651 /* DesignSystem */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = FF0FD0A7A2C34602BF9220A9 /* XCLocalSwiftPackageReference "../UI/DesignSystem" */;
@@ -132,6 +143,7 @@
 			);
 			name = BookSearch;
 			packageProductDependencies = (
+				44E856E3DBE240CCB3218B62 /* DependencyResolver */,
 				48141198BCCB41308C97D651 /* DesignSystem */,
 			);
 			productName = BookSearch;
@@ -213,6 +225,7 @@
 			mainGroup = D352F39616B53CDB2EA3F3E6;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				41561DFBE36F43D4A29240B5 /* XCLocalSwiftPackageReference "../Shared/DependencyResolver" */,
 				FF0FD0A7A2C34602BF9220A9 /* XCLocalSwiftPackageReference "../UI/DesignSystem" */,
 			);
 			preferredProjectObjectVersion = 77;
