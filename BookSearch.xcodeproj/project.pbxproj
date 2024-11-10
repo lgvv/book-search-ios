@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F975CEC0863149E0991F7035 /* DesignSystem in Frameworks */ = {isa = PBXBuildFile; productRef = 48141198BCCB41308C97D651 /* DesignSystem */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -55,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F975CEC0863149E0991F7035 /* DesignSystem in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -97,6 +99,21 @@
 		};
 /* End PBXGroup section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		FF0FD0A7A2C34602BF9220A9 /* XCLocalSwiftPackageReference "../UI/DesignSystem" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "../UI/DesignSystem";
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		48141198BCCB41308C97D651 /* DesignSystem */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FF0FD0A7A2C34602BF9220A9 /* XCLocalSwiftPackageReference "../UI/DesignSystem" */;
+			productName = DesignSystem;
+		};
+/* End XCSwiftPackageProductDependency section */
+
 /* Begin PBXNativeTarget section */
 		B914BB00F25E420287F03825 /* BookSearch */ = {
 			isa = PBXNativeTarget;
@@ -114,6 +131,9 @@
 				A66088FAC9FA2C24BAC599E7 /* BookSearch */,
 			);
 			name = BookSearch;
+			packageProductDependencies = (
+				48141198BCCB41308C97D651 /* DesignSystem */,
+			);
 			productName = BookSearch;
 			productReference = FEFCA742705B3FC637E985D7 /* BookSearch.app */;
 			productType = "com.apple.product-type.application";
@@ -192,6 +212,9 @@
 			);
 			mainGroup = D352F39616B53CDB2EA3F3E6;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				FF0FD0A7A2C34602BF9220A9 /* XCLocalSwiftPackageReference "../UI/DesignSystem" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E1C8D96BD7C1DEC569A220F9 /* Products */;
 			projectDirPath = "";
