@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		29A533EB6EDA4FCC93017A51 /* MockServer in Frameworks */ = {isa = PBXBuildFile; productRef = 6990513ADA3C4D46A292BA01 /* MockServer */; };
 		F3A36AFA33B64CF29E1BE0E8 /* ImageLoader in Frameworks */ = {isa = PBXBuildFile; productRef = B641D9750A874C748EE783FE /* ImageLoader */; };
 		DDD6B10FE3F64B68847ADB11 /* ImageLoaderContainer in Frameworks */ = {isa = PBXBuildFile; productRef = E9FE149E92934634B5C6C333 /* ImageLoaderContainer */; };
 		4F1E35C685464AE5B4C2836F /* Persistence in Frameworks */ = {isa = PBXBuildFile; productRef = 9144E9D506B248889687F752 /* Persistence */; };
@@ -71,6 +72,7 @@
 				85EEFF9F9284405AB0A1216E /* PersistenceInterface in Frameworks */,
 				F3A36AFA33B64CF29E1BE0E8 /* ImageLoader in Frameworks */,
 				DDD6B10FE3F64B68847ADB11 /* ImageLoaderContainer in Frameworks */,
+				29A533EB6EDA4FCC93017A51 /* MockServer in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -114,6 +116,10 @@
 /* End PBXGroup section */
 
 /* Begin XCLocalSwiftPackageReference section */
+		FFDA192C9A35462AB1D6AB7C /* XCLocalSwiftPackageReference "../App/MockServer" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "../App/MockServer";
+		};
 		DD026C9FF31C460283CCB431 /* XCLocalSwiftPackageReference "../Shared/ImageLoader" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = "../Shared/ImageLoader";
@@ -137,6 +143,11 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		6990513ADA3C4D46A292BA01 /* MockServer */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FFDA192C9A35462AB1D6AB7C /* XCLocalSwiftPackageReference "../App/MockServer" */;
+			productName = MockServer;
+		};
 		B641D9750A874C748EE783FE /* ImageLoader */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = DD026C9FF31C460283CCB431 /* XCLocalSwiftPackageReference "../Shared/ImageLoader" */;
@@ -197,6 +208,7 @@
 			);
 			name = BookSearch;
 			packageProductDependencies = (
+				6990513ADA3C4D46A292BA01 /* MockServer */,
 				B641D9750A874C748EE783FE /* ImageLoader */,
 				E9FE149E92934634B5C6C333 /* ImageLoaderContainer */,
 				9144E9D506B248889687F752 /* Persistence */,
@@ -285,6 +297,7 @@
 			mainGroup = D352F39616B53CDB2EA3F3E6;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				FFDA192C9A35462AB1D6AB7C /* XCLocalSwiftPackageReference "../App/MockServer" */,
 				DD026C9FF31C460283CCB431 /* XCLocalSwiftPackageReference "../Shared/ImageLoader" */,
 				42983C2738D641E9BF248ED6 /* XCLocalSwiftPackageReference "../Shared/Persistence" */,
 				0C9384EB15934DEBA714369D /* XCLocalSwiftPackageReference "../Shared/Networks" */,
