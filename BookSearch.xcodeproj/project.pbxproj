@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4F1E35C685464AE5B4C2836F /* Persistence in Frameworks */ = {isa = PBXBuildFile; productRef = 9144E9D506B248889687F752 /* Persistence */; };
+		85EEFF9F9284405AB0A1216E /* PersistenceInterface in Frameworks */ = {isa = PBXBuildFile; productRef = E69FA7D0B676422C9C272D5D /* PersistenceInterface */; };
 		6291045FAFB6403EA1F2C5F6 /* Networks in Frameworks */ = {isa = PBXBuildFile; productRef = E12FADC48A504004AF5CF9E1 /* Networks */; };
 		C7E5BFC8BB1A4111967027F1 /* NetworksInterface in Frameworks */ = {isa = PBXBuildFile; productRef = 2BCA5132E147402EA4703A5E /* NetworksInterface */; };
 		D4B6E96E1052431C80470242 /* DependencyResolver in Frameworks */ = {isa = PBXBuildFile; productRef = 44E856E3DBE240CCB3218B62 /* DependencyResolver */; };
@@ -63,6 +65,8 @@
 				D4B6E96E1052431C80470242 /* DependencyResolver in Frameworks */,
 				6291045FAFB6403EA1F2C5F6 /* Networks in Frameworks */,
 				C7E5BFC8BB1A4111967027F1 /* NetworksInterface in Frameworks */,
+				4F1E35C685464AE5B4C2836F /* Persistence in Frameworks */,
+				85EEFF9F9284405AB0A1216E /* PersistenceInterface in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -106,6 +110,10 @@
 /* End PBXGroup section */
 
 /* Begin XCLocalSwiftPackageReference section */
+		42983C2738D641E9BF248ED6 /* XCLocalSwiftPackageReference "../Shared/Persistence" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "../Shared/Persistence";
+		};
 		0C9384EB15934DEBA714369D /* XCLocalSwiftPackageReference "../Shared/Networks" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = "../Shared/Networks";
@@ -121,6 +129,16 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		9144E9D506B248889687F752 /* Persistence */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 42983C2738D641E9BF248ED6 /* XCLocalSwiftPackageReference "../Shared/Persistence" */;
+			productName = Persistence;
+		};
+		E69FA7D0B676422C9C272D5D /* PersistenceInterface */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 42983C2738D641E9BF248ED6 /* XCLocalSwiftPackageReference "../Shared/Persistence" */;
+			productName = PersistenceInterface;
+		};
 		E12FADC48A504004AF5CF9E1 /* Networks */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 0C9384EB15934DEBA714369D /* XCLocalSwiftPackageReference "../Shared/Networks" */;
@@ -161,6 +179,8 @@
 			);
 			name = BookSearch;
 			packageProductDependencies = (
+				9144E9D506B248889687F752 /* Persistence */,
+				E69FA7D0B676422C9C272D5D /* PersistenceInterface */,
 				E12FADC48A504004AF5CF9E1 /* Networks */,
 				2BCA5132E147402EA4703A5E /* NetworksInterface */,
 				44E856E3DBE240CCB3218B62 /* DependencyResolver */,
@@ -245,6 +265,7 @@
 			mainGroup = D352F39616B53CDB2EA3F3E6;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				42983C2738D641E9BF248ED6 /* XCLocalSwiftPackageReference "../Shared/Persistence" */,
 				0C9384EB15934DEBA714369D /* XCLocalSwiftPackageReference "../Shared/Networks" */,
 				41561DFBE36F43D4A29240B5 /* XCLocalSwiftPackageReference "../Shared/DependencyResolver" */,
 				FF0FD0A7A2C34602BF9220A9 /* XCLocalSwiftPackageReference "../UI/DesignSystem" */,
