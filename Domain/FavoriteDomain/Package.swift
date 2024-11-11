@@ -35,6 +35,18 @@ let package = Package(
                 .product(name: "BookModel", package: "BookDomain"),
             ],
             swiftSettings: [.swiftLanguageMode(.v6)]
+        ),
+        .testTarget(
+            name: "FavoriteDomainTests",
+            dependencies: [
+                "FavoriteCore",
+                "FavoriteData",
+                .product(name: "BookModel", package: "BookDomain"),
+                .product(name: "NetworksInterface", package: "Networks"),
+                .product(name: "SharedFoundation", package: "SharedFoundation"),
+                .product(name: "TestSupport", package: "TestSupport")
+            ],
+            swiftSettings: [.swiftLanguageMode(.v6)]
         )
     ]
 )
