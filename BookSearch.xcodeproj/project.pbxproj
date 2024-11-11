@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1903C8F18C5745B8BB7F8A61 /* SearchFeature in Frameworks */ = {isa = PBXBuildFile; productRef = 12EDD5865B3046108298BB5D /* SearchFeature */; };
 		2B863F08CF7F4DA49A14F8FC /* MemoCore in Frameworks */ = {isa = PBXBuildFile; productRef = D721F98B0EA846F2B6DBDAC0 /* MemoCore */; };
 		CC2EAC1CD95C4C81B8B0E0C9 /* MemoData in Frameworks */ = {isa = PBXBuildFile; productRef = DBA2E6FC23BA4F1BB1B92130 /* MemoData */; };
 		5055B7C520104C33B929F05B /* FavoriteCore in Frameworks */ = {isa = PBXBuildFile; productRef = 4817AA83C58A4491962D8704 /* FavoriteCore */; };
@@ -89,6 +90,7 @@
 				73C1AB84B8C546C6B1554D8F /* FavoriteData in Frameworks */,
 				2B863F08CF7F4DA49A14F8FC /* MemoCore in Frameworks */,
 				CC2EAC1CD95C4C81B8B0E0C9 /* MemoData in Frameworks */,
+				1903C8F18C5745B8BB7F8A61 /* SearchFeature in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -132,6 +134,10 @@
 /* End PBXGroup section */
 
 /* Begin XCLocalSwiftPackageReference section */
+		CF3EE46F15D8470B996E9B19 /* XCLocalSwiftPackageReference "../Feature/SearchFeature" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "../Feature/SearchFeature";
+		};
 		161B059D070C4842BE07DFCA /* XCLocalSwiftPackageReference "../Domain/MemoDomain" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = "../Domain/MemoDomain";
@@ -175,6 +181,11 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		12EDD5865B3046108298BB5D /* SearchFeature */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CF3EE46F15D8470B996E9B19 /* XCLocalSwiftPackageReference "../Feature/SearchFeature" */;
+			productName = SearchFeature;
+		};
 		D721F98B0EA846F2B6DBDAC0 /* MemoCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 161B059D070C4842BE07DFCA /* XCLocalSwiftPackageReference "../Domain/MemoDomain" */;
@@ -280,6 +291,7 @@
 			);
 			name = BookSearch;
 			packageProductDependencies = (
+				12EDD5865B3046108298BB5D /* SearchFeature */,
 				D721F98B0EA846F2B6DBDAC0 /* MemoCore */,
 				DBA2E6FC23BA4F1BB1B92130 /* MemoData */,
 				4817AA83C58A4491962D8704 /* FavoriteCore */,
@@ -377,6 +389,7 @@
 			mainGroup = D352F39616B53CDB2EA3F3E6;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				CF3EE46F15D8470B996E9B19 /* XCLocalSwiftPackageReference "../Feature/SearchFeature" */,
 				161B059D070C4842BE07DFCA /* XCLocalSwiftPackageReference "../Domain/MemoDomain" */,
 				0A0CC763207D4EADA7C24DD1 /* XCLocalSwiftPackageReference "../Domain/FavoriteDomain" */,
 				9F600EF953664D5B8A1B24B9 /* XCLocalSwiftPackageReference "../Domain/RecentSearchDomain" */,
