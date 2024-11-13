@@ -45,6 +45,20 @@ let package = Package(
                 .product(name: "BookModel", package: "BookDomain"),
             ],
             swiftSettings: [.swiftLanguageMode(.v6)]
+        ),
+        .testTarget(
+            name: "MemoDomainTests",
+            dependencies: [
+                "MemoModel",
+                "MemoCore",
+                "MemoData",
+                .product(name: "BookModel", package: "BookDomain"),
+                .product(name: "Persistence", package: "Persistence"),
+                .product(name: "PersistenceInterface", package: "Persistence"),
+                .product(name: "SharedFoundation", package: "SharedFoundation"),
+                .product(name: "TestSupport", package: "TestSupport")
+            ],
+            swiftSettings: [.swiftLanguageMode(.v6)]
         )
     ]
 )
