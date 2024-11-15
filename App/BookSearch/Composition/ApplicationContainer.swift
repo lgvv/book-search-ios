@@ -5,6 +5,7 @@ import BookData
 import DependencyResolver
 import FavoriteCore
 import FavoriteData
+import FavoriteFeature
 import ImageLoader
 import ImageLoaderContainer
 import MemoCore
@@ -21,6 +22,7 @@ import SearchFeature
 @MainActor
 final class ApplicationContainer {
     let searchSceneBuilder: SearchSceneBuilder
+    let favoriteSceneBuilder: FavoriteSceneBuilder
 
     private let client: UserDefaultsClient
 
@@ -59,6 +61,7 @@ final class ApplicationContainer {
         Resolver.install(values)
 
         self.searchSceneBuilder = SearchSceneBuilder()
+        self.favoriteSceneBuilder = FavoriteSceneBuilder()
     }
 
     func start() {
