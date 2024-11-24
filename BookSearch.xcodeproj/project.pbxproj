@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		289FBC6D47DE46FF908BB7F7 /* MemoFeature in Frameworks */ = {isa = PBXBuildFile; productRef = D5677CFD684F463F87486FED /* MemoFeature */; };
 		86692F44247F452E8F4C5D8D /* RecentlyViewedCore in Frameworks */ = {isa = PBXBuildFile; productRef = 49C8D1A9C2FA47B3B7FCB9F2 /* RecentlyViewedCore */; };
 		841DCB5F49904B44BAE8AA9E /* RecentlyViewedData in Frameworks */ = {isa = PBXBuildFile; productRef = 2C229346E13C441C85431359 /* RecentlyViewedData */; };
 		CD807213722F41CE8BD718C6 /* FavoriteFeature in Frameworks */ = {isa = PBXBuildFile; productRef = D200BA0BE09E4E7C8B6865B2 /* FavoriteFeature */; };
@@ -97,6 +98,7 @@
 				CD807213722F41CE8BD718C6 /* FavoriteFeature in Frameworks */,
 				86692F44247F452E8F4C5D8D /* RecentlyViewedCore in Frameworks */,
 				841DCB5F49904B44BAE8AA9E /* RecentlyViewedData in Frameworks */,
+				289FBC6D47DE46FF908BB7F7 /* MemoFeature in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -140,6 +142,10 @@
 /* End PBXGroup section */
 
 /* Begin XCLocalSwiftPackageReference section */
+		3168FD6EADDD44E7A591060B /* XCLocalSwiftPackageReference "Feature/MemoFeature" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "Feature/MemoFeature";
+		};
 		EF370A5581F8491589C14A99 /* XCLocalSwiftPackageReference "Domain/RecentlyViewedDomain" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = "Domain/RecentlyViewedDomain";
@@ -195,6 +201,11 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		D5677CFD684F463F87486FED /* MemoFeature */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3168FD6EADDD44E7A591060B /* XCLocalSwiftPackageReference "Feature/MemoFeature" */;
+			productName = MemoFeature;
+		};
 		49C8D1A9C2FA47B3B7FCB9F2 /* RecentlyViewedCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = EF370A5581F8491589C14A99 /* XCLocalSwiftPackageReference "Domain/RecentlyViewedDomain" */;
@@ -320,6 +331,7 @@
 			);
 			name = BookSearch;
 			packageProductDependencies = (
+				D5677CFD684F463F87486FED /* MemoFeature */,
 				49C8D1A9C2FA47B3B7FCB9F2 /* RecentlyViewedCore */,
 				2C229346E13C441C85431359 /* RecentlyViewedData */,
 				D200BA0BE09E4E7C8B6865B2 /* FavoriteFeature */,
@@ -421,6 +433,7 @@
 			mainGroup = D352F39616B53CDB2EA3F3E6;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				3168FD6EADDD44E7A591060B /* XCLocalSwiftPackageReference "Feature/MemoFeature" */,
 				EF370A5581F8491589C14A99 /* XCLocalSwiftPackageReference "Domain/RecentlyViewedDomain" */,
 				EE9154247170467F9DB31420 /* XCLocalSwiftPackageReference "Feature/FavoriteFeature" */,
 				CF3EE46F15D8470B996E9B19 /* XCLocalSwiftPackageReference "Feature/SearchFeature" */,
