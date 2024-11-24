@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		86692F44247F452E8F4C5D8D /* RecentlyViewedCore in Frameworks */ = {isa = PBXBuildFile; productRef = 49C8D1A9C2FA47B3B7FCB9F2 /* RecentlyViewedCore */; };
+		841DCB5F49904B44BAE8AA9E /* RecentlyViewedData in Frameworks */ = {isa = PBXBuildFile; productRef = 2C229346E13C441C85431359 /* RecentlyViewedData */; };
 		CD807213722F41CE8BD718C6 /* FavoriteFeature in Frameworks */ = {isa = PBXBuildFile; productRef = D200BA0BE09E4E7C8B6865B2 /* FavoriteFeature */; };
 		1903C8F18C5745B8BB7F8A61 /* SearchFeature in Frameworks */ = {isa = PBXBuildFile; productRef = 12EDD5865B3046108298BB5D /* SearchFeature */; };
 		2B863F08CF7F4DA49A14F8FC /* MemoCore in Frameworks */ = {isa = PBXBuildFile; productRef = D721F98B0EA846F2B6DBDAC0 /* MemoCore */; };
@@ -93,6 +95,8 @@
 				CC2EAC1CD95C4C81B8B0E0C9 /* MemoData in Frameworks */,
 				1903C8F18C5745B8BB7F8A61 /* SearchFeature in Frameworks */,
 				CD807213722F41CE8BD718C6 /* FavoriteFeature in Frameworks */,
+				86692F44247F452E8F4C5D8D /* RecentlyViewedCore in Frameworks */,
+				841DCB5F49904B44BAE8AA9E /* RecentlyViewedData in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -136,6 +140,10 @@
 /* End PBXGroup section */
 
 /* Begin XCLocalSwiftPackageReference section */
+		EF370A5581F8491589C14A99 /* XCLocalSwiftPackageReference "Domain/RecentlyViewedDomain" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "Domain/RecentlyViewedDomain";
+		};
 		EE9154247170467F9DB31420 /* XCLocalSwiftPackageReference "Feature/FavoriteFeature" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = "Feature/FavoriteFeature";
@@ -187,6 +195,16 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		49C8D1A9C2FA47B3B7FCB9F2 /* RecentlyViewedCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EF370A5581F8491589C14A99 /* XCLocalSwiftPackageReference "Domain/RecentlyViewedDomain" */;
+			productName = RecentlyViewedCore;
+		};
+		2C229346E13C441C85431359 /* RecentlyViewedData */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EF370A5581F8491589C14A99 /* XCLocalSwiftPackageReference "Domain/RecentlyViewedDomain" */;
+			productName = RecentlyViewedData;
+		};
 		D200BA0BE09E4E7C8B6865B2 /* FavoriteFeature */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = EE9154247170467F9DB31420 /* XCLocalSwiftPackageReference "Feature/FavoriteFeature" */;
@@ -302,6 +320,8 @@
 			);
 			name = BookSearch;
 			packageProductDependencies = (
+				49C8D1A9C2FA47B3B7FCB9F2 /* RecentlyViewedCore */,
+				2C229346E13C441C85431359 /* RecentlyViewedData */,
 				D200BA0BE09E4E7C8B6865B2 /* FavoriteFeature */,
 				12EDD5865B3046108298BB5D /* SearchFeature */,
 				D721F98B0EA846F2B6DBDAC0 /* MemoCore */,
@@ -401,6 +421,7 @@
 			mainGroup = D352F39616B53CDB2EA3F3E6;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				EF370A5581F8491589C14A99 /* XCLocalSwiftPackageReference "Domain/RecentlyViewedDomain" */,
 				EE9154247170467F9DB31420 /* XCLocalSwiftPackageReference "Feature/FavoriteFeature" */,
 				CF3EE46F15D8470B996E9B19 /* XCLocalSwiftPackageReference "Feature/SearchFeature" */,
 				161B059D070C4842BE07DFCA /* XCLocalSwiftPackageReference "Domain/MemoDomain" */,
