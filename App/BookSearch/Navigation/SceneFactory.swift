@@ -1,8 +1,11 @@
 import UIKit
 
+import BookDetailFeatureInterface
 import BookModel
 import FavoriteFeature
 import FavoriteFeatureInterface
+import MemoFeature
+import MemoFeatureInterface
 import SearchFeature
 import SearchFeatureInterface
 
@@ -28,6 +31,36 @@ final class SceneFactory {
             switch action {
             case let .didSelectBook(book):
                 onSelectBook(book)
+            }
+        }
+    }
+
+    func makeMemoScene(onSelectBook: @escaping (Book) -> Void) -> UIViewController {
+        self.container.memoSceneBuilder.makeScene { action in
+            switch action {
+            case let .didSelectBook(book):
+                onSelectBook(book)
+            }
+        }
+    }
+
+    func makeBookDetailScene(
+        _ payload: BookDetailPayload,
+        onRequestMemoEdit: @escaping (Book) -> Void
+    ) -> UIViewController {
+        self.container.bookDetailSceneBuilder.makeScene(payload) { action in
+            switch action {
+            case let .didRequestMemoEdit(book):
+                onRequestMemoEdit(book)
+            }
+        }
+    }
+
+    func makeMemoEditScene(book: Book, onFinish: @escaping () -> Void) -> UIViewController {
+        self.container.memoEditSceneBuilder.makeScene(book: book) { action in
+            switch action {
+            case .didFinish:
+                onFinish()
             }
         }
     }
