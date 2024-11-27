@@ -21,6 +21,7 @@ import RecentSearchCore
 import RecentSearchData
 import RecentlyViewedCore
 import RecentlyViewedData
+import RecentlyViewedFeature
 import SearchFeature
 
 @MainActor
@@ -30,6 +31,7 @@ final class ApplicationContainer {
     let memoSceneBuilder: MemoSceneBuilder
     let memoEditSceneBuilder: MemoEditSceneBuilder
     let bookDetailSceneBuilder: BookDetailSceneBuilder
+    let recentlyViewedSceneBuilder: RecentlyViewedSceneBuilder
 
     private let client: UserDefaultsClient
 
@@ -78,6 +80,7 @@ final class ApplicationContainer {
         self.memoSceneBuilder = MemoSceneBuilder()
         self.memoEditSceneBuilder = MemoEditSceneBuilder()
         self.bookDetailSceneBuilder = BookDetailSceneBuilder()
+        self.recentlyViewedSceneBuilder = RecentlyViewedSceneBuilder()
     }
 
     func start() {
