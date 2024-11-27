@@ -6,6 +6,8 @@ import FavoriteFeature
 import FavoriteFeatureInterface
 import MemoFeature
 import MemoFeatureInterface
+import RecentlyViewedFeature
+import RecentlyViewedFeatureInterface
 import SearchFeature
 import SearchFeatureInterface
 
@@ -37,6 +39,15 @@ final class SceneFactory {
 
     func makeMemoScene(onSelectBook: @escaping (Book) -> Void) -> UIViewController {
         self.container.memoSceneBuilder.makeScene { action in
+            switch action {
+            case let .didSelectBook(book):
+                onSelectBook(book)
+            }
+        }
+    }
+
+    func makeRecentlyViewedScene(onSelectBook: @escaping (Book) -> Void) -> UIViewController {
+        self.container.recentlyViewedSceneBuilder.makeScene { action in
             switch action {
             case let .didSelectBook(book):
                 onSelectBook(book)
