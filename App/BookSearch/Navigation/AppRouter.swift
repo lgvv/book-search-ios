@@ -180,6 +180,8 @@ final class AppRouter: Navigator {
             return self.scenes.makeFavoriteScene(onSelectBook: onSelectBook)
         case .memo:
             return self.scenes.makeMemoScene(onSelectBook: onSelectBook)
+        case .recentlyViewed:
+            return self.scenes.makeRecentlyViewedScene(onSelectBook: onSelectBook)
         }
     }
 }
