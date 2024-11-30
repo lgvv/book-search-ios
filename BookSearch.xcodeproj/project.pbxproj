@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		094B427C8E7A4046A7E336F5 /* StorageCatalog in Frameworks */ = {isa = PBXBuildFile; productRef = 778CCA573F494FB7A7C7CF64 /* StorageCatalog */; };
 		825F2463E835462E9DA37693 /* RemoteConfig in Frameworks */ = {isa = PBXBuildFile; productRef = 5D6C0155C6BA4ADEBD1B09ED /* RemoteConfig */; };
 		6FF27909280244D49B010029 /* RemoteConfigInterface in Frameworks */ = {isa = PBXBuildFile; productRef = AAE21B7316E54DC9B8245001 /* RemoteConfigInterface */; };
 		203C328FD6AC490491CA31EC /* RecentlyViewedFeature in Frameworks */ = {isa = PBXBuildFile; productRef = 6D647B4DA73C40E09B7B53B5 /* RecentlyViewedFeature */; };
@@ -107,6 +108,7 @@
 				203C328FD6AC490491CA31EC /* RecentlyViewedFeature in Frameworks */,
 				825F2463E835462E9DA37693 /* RemoteConfig in Frameworks */,
 				6FF27909280244D49B010029 /* RemoteConfigInterface in Frameworks */,
+				094B427C8E7A4046A7E336F5 /* StorageCatalog in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -150,6 +152,10 @@
 /* End PBXGroup section */
 
 /* Begin XCLocalSwiftPackageReference section */
+		82B44CA8932B4549A0530E91 /* XCLocalSwiftPackageReference "Core/StorageCatalog" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "Core/StorageCatalog";
+		};
 		879BBAD688EB4B1A99D9BAEF /* XCLocalSwiftPackageReference "Shared/RemoteConfig" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = "Shared/RemoteConfig";
@@ -221,6 +227,11 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		778CCA573F494FB7A7C7CF64 /* StorageCatalog */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 82B44CA8932B4549A0530E91 /* XCLocalSwiftPackageReference "Core/StorageCatalog" */;
+			productName = StorageCatalog;
+		};
 		5D6C0155C6BA4ADEBD1B09ED /* RemoteConfig */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 879BBAD688EB4B1A99D9BAEF /* XCLocalSwiftPackageReference "Shared/RemoteConfig" */;
@@ -371,6 +382,7 @@
 			);
 			name = BookSearch;
 			packageProductDependencies = (
+				778CCA573F494FB7A7C7CF64 /* StorageCatalog */,
 				5D6C0155C6BA4ADEBD1B09ED /* RemoteConfig */,
 				AAE21B7316E54DC9B8245001 /* RemoteConfigInterface */,
 				6D647B4DA73C40E09B7B53B5 /* RecentlyViewedFeature */,
@@ -477,6 +489,7 @@
 			mainGroup = D352F39616B53CDB2EA3F3E6;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				82B44CA8932B4549A0530E91 /* XCLocalSwiftPackageReference "Core/StorageCatalog" */,
 				879BBAD688EB4B1A99D9BAEF /* XCLocalSwiftPackageReference "Shared/RemoteConfig" */,
 				687908F164E14C039CCBEE39 /* XCLocalSwiftPackageReference "Feature/RecentlyViewedFeature" */,
 				4572313FA79C4FCF9102DEB9 /* XCLocalSwiftPackageReference "Feature/BookDetailFeature" */,
