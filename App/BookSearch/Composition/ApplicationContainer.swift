@@ -22,7 +22,10 @@ import RecentSearchData
 import RecentlyViewedCore
 import RecentlyViewedData
 import RecentlyViewedFeature
+import RemoteConfig
+import RemoteConfigInterface
 import SearchFeature
+import StorageCatalog
 
 @MainActor
 final class ApplicationContainer {
@@ -45,17 +48,33 @@ final class ApplicationContainer {
         let client = UserDefaultsClient.live(suiteName: AppEnvironment.storageSuiteName)
         self.client = client
 
+        let config = RemoteConfigClient.resolving(sources: [
+            LocalOverrideSource(client: client, namespace: StorageKeys.configOverrideNamespace),
+            SnapshotSource(client: client, key: StorageKeys.remoteConfigSnapshot),
+        ])
+
         ImageLoaderContainer.bootstrap(
             dataLoader: .networks(client: .live),
             diskClient: .caches(directoryName: AppEnvironment.imageCacheDirectoryName)
         )
 
-        let mockSession = MockServer.install(.init(storeFactory: .live))
+        let mockSession = MockServer.install(
+            .init(
+                storeFactory: .live,
+                faultProfile: MockFaultProfile(
+                    failureRate: config.value(Configs.mockWriteFailureRate)
+                )
+            )
+        )
         let httpClient = HTTPClient.live.replacingTransport(URLSessionTransport(urlSession: mockSession))
 
         var values = ResolverValues()
         values[BookSearchClientKey.self] = .liveValue(
-            repository: makeBookRepository(httpClient: httpClient, baseURL: MockServer.baseURL)
+            repository: makeBookRepository(
+                httpClient: httpClient,
+                baseURL: MockServer.baseURL,
+                pageSize: config.value(Configs.searchPageSize)
+            )
         )
         values[RecentSearchClientKey.self] = .liveValue(repository: makeRecentSearchRepository(client: client))
 
@@ -86,6 +105,8 @@ final class ApplicationContainer {
     func start() {
         precondition(!self.didStart, "ApplicationContainer.start()는 프로세스당 1회만 호출한다")
         self.didStart = true
+
+        RemoteConfigFetcher.fetchForNextLaunch(client: self.client)
 
         Task { [favoriteClient, memoClient, recentlyViewedClient] in
             async let favorite: Void = favoriteClient.start()
