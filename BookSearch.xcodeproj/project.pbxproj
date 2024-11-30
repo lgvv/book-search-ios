@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		825F2463E835462E9DA37693 /* RemoteConfig in Frameworks */ = {isa = PBXBuildFile; productRef = 5D6C0155C6BA4ADEBD1B09ED /* RemoteConfig */; };
+		6FF27909280244D49B010029 /* RemoteConfigInterface in Frameworks */ = {isa = PBXBuildFile; productRef = AAE21B7316E54DC9B8245001 /* RemoteConfigInterface */; };
 		203C328FD6AC490491CA31EC /* RecentlyViewedFeature in Frameworks */ = {isa = PBXBuildFile; productRef = 6D647B4DA73C40E09B7B53B5 /* RecentlyViewedFeature */; };
 		782180E40D4C4B21BEC83246 /* BookDetailFeature in Frameworks */ = {isa = PBXBuildFile; productRef = 7B14BA23528749509847C3BD /* BookDetailFeature */; };
 		289FBC6D47DE46FF908BB7F7 /* MemoFeature in Frameworks */ = {isa = PBXBuildFile; productRef = D5677CFD684F463F87486FED /* MemoFeature */; };
@@ -103,6 +105,8 @@
 				289FBC6D47DE46FF908BB7F7 /* MemoFeature in Frameworks */,
 				782180E40D4C4B21BEC83246 /* BookDetailFeature in Frameworks */,
 				203C328FD6AC490491CA31EC /* RecentlyViewedFeature in Frameworks */,
+				825F2463E835462E9DA37693 /* RemoteConfig in Frameworks */,
+				6FF27909280244D49B010029 /* RemoteConfigInterface in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -146,6 +150,10 @@
 /* End PBXGroup section */
 
 /* Begin XCLocalSwiftPackageReference section */
+		879BBAD688EB4B1A99D9BAEF /* XCLocalSwiftPackageReference "Shared/RemoteConfig" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "Shared/RemoteConfig";
+		};
 		687908F164E14C039CCBEE39 /* XCLocalSwiftPackageReference "Feature/RecentlyViewedFeature" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = "Feature/RecentlyViewedFeature";
@@ -213,6 +221,16 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		5D6C0155C6BA4ADEBD1B09ED /* RemoteConfig */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 879BBAD688EB4B1A99D9BAEF /* XCLocalSwiftPackageReference "Shared/RemoteConfig" */;
+			productName = RemoteConfig;
+		};
+		AAE21B7316E54DC9B8245001 /* RemoteConfigInterface */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 879BBAD688EB4B1A99D9BAEF /* XCLocalSwiftPackageReference "Shared/RemoteConfig" */;
+			productName = RemoteConfigInterface;
+		};
 		6D647B4DA73C40E09B7B53B5 /* RecentlyViewedFeature */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 687908F164E14C039CCBEE39 /* XCLocalSwiftPackageReference "Feature/RecentlyViewedFeature" */;
@@ -353,6 +371,8 @@
 			);
 			name = BookSearch;
 			packageProductDependencies = (
+				5D6C0155C6BA4ADEBD1B09ED /* RemoteConfig */,
+				AAE21B7316E54DC9B8245001 /* RemoteConfigInterface */,
 				6D647B4DA73C40E09B7B53B5 /* RecentlyViewedFeature */,
 				7B14BA23528749509847C3BD /* BookDetailFeature */,
 				D5677CFD684F463F87486FED /* MemoFeature */,
@@ -457,6 +477,7 @@
 			mainGroup = D352F39616B53CDB2EA3F3E6;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				879BBAD688EB4B1A99D9BAEF /* XCLocalSwiftPackageReference "Shared/RemoteConfig" */,
 				687908F164E14C039CCBEE39 /* XCLocalSwiftPackageReference "Feature/RecentlyViewedFeature" */,
 				4572313FA79C4FCF9102DEB9 /* XCLocalSwiftPackageReference "Feature/BookDetailFeature" */,
 				3168FD6EADDD44E7A591060B /* XCLocalSwiftPackageReference "Feature/MemoFeature" */,
