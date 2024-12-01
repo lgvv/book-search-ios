@@ -65,8 +65,6 @@ final class AppRouter: Navigator {
         }
     }
 
-    // MARK: - Navigator
-
     func navigate(to route: any Route) {
         let context = RouteContext(scenes: self.scenes, navigator: self)
 
@@ -118,8 +116,6 @@ final class AppRouter: Navigator {
         self.rootViewController.dismiss(animated: true)
     }
 
-    // MARK: - 표시 방식 실행
-
     private func present(
         _ viewController: UIViewController?,
         using presentation: RoutePresentation,
@@ -166,8 +162,6 @@ final class AppRouter: Navigator {
         return self.rootViewController.selectedViewController as? UINavigationController
             ?? self.navigationControllers[.search]!
     }
-
-    // MARK: - 탭 루트
 
     private func makeTabRoot(_ tab: AppTab) -> UIViewController {
         let onSelectBook: (Book) -> Void = { [weak self] book in
