@@ -1,12 +1,14 @@
-import XCTest
+import Foundation
+import Testing
 
 import TestSupport
 
 @testable import SharedFoundation
 
-final class ConcurrencyGateTests: XCTestCase {
+struct ConcurrencyGateTests {
 
-    func test_상한보다많이제출해도_동시실행수가상한을넘지않는다() async {
+    @Test
+    func 상한보다많이제출해도_동시실행수가상한을넘지않는다() async {
         let capacity = 3
         let sut = ConcurrencyGate(capacity: capacity)
         let inFlight = Locked(0)
@@ -27,36 +29,39 @@ final class ConcurrencyGateTests: XCTestCase {
             }
         }
 
-        XCTAssertEqual(peak.value, capacity)
-        XCTAssertEqual(inFlight.value, 0)
+        #expect(peak.value == capacity)
+        #expect(inFlight.value == 0)
     }
 
-    func test_상한에0이하를주면_최소1로올린다() async {
+    @Test
+    func 상한에0이하를주면_최소1로올린다() async {
         let sut = ConcurrencyGate(capacity: 0)
 
         let result = await sut.withPermit { "통과" }
 
-        XCTAssertEqual(result, "통과")
+        #expect(result == "통과")
     }
 
-    func test_작업이던져도_permit을반납한다() async {
+    @Test
+    func 작업이던져도_permit을반납한다() async {
         let sut = ConcurrencyGate(capacity: 1)
         struct Boom: Error {}
 
         do {
             try await sut.withPermit { throw Boom() }
-            XCTFail("작업이 던져야 한다")
+            Issue.record("작업이 던져야 한다")
         } catch {
-            XCTAssertTrue(error is Boom)
+            #expect(error is Boom)
         }
 
         let didPass = await waitUntil {
             await sut.withPermit { true }
         }
-        XCTAssertTrue(didPass)
+        #expect(didPass)
     }
 
-    func test_permit이모두잡혀있으면_반납전까지대기한다() async {
+    @Test
+    func permit이모두잡혀있으면_반납전까지대기한다() async {
         let sut = ConcurrencyGate(capacity: 1)
         let holder = Gate()
         let didEnterSecond = Locked(false)
@@ -67,15 +72,16 @@ final class ConcurrencyGateTests: XCTestCase {
         let second = Task { await sut.withPermit { didEnterSecond.withValue { $0 = true } } }
 
         let stayedOut = await stayFalse { didEnterSecond.value }
-        XCTAssertTrue(stayedOut)
+        #expect(stayedOut)
 
         holder.open()
         await first.value
         await second.value
-        XCTAssertTrue(didEnterSecond.value)
+        #expect(didEnterSecond.value)
     }
 
-    func test_대기자가있으면_permit을반납하지않고그대로넘긴다() async {
+    @Test
+    func 대기자가있으면_permit을반납하지않고그대로넘긴다() async {
         let sut = ConcurrencyGate(capacity: 2)
         let completed = Locked(0)
 
@@ -90,10 +96,11 @@ final class ConcurrencyGateTests: XCTestCase {
             }
         }
 
-        XCTAssertEqual(completed.value, 30)
+        #expect(completed.value == 30)
     }
 
-    func test_CPU작업용기본게이트는_상한이2에서4사이다() async {
+    @Test
+    func CPU작업용기본게이트는_상한이2에서4사이다() async {
         let sut = ConcurrencyGate.forCPUBoundWork()
         let peak = Locked(0)
         let inFlight = Locked(0)
@@ -113,7 +120,7 @@ final class ConcurrencyGateTests: XCTestCase {
             }
         }
 
-        XCTAssertGreaterThanOrEqual(peak.value, 2)
-        XCTAssertLessThanOrEqual(peak.value, 4)
+        #expect(peak.value >= 2)
+        #expect(peak.value <= 4)
     }
 }

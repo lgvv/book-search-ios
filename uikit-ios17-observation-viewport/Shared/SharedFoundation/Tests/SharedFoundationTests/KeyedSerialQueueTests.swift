@@ -1,12 +1,14 @@
-import XCTest
+import Foundation
+import Testing
 
 import TestSupport
 
 @testable import SharedFoundation
 
-final class KeyedSerialQueueTests: XCTestCase {
+struct KeyedSerialQueueTests {
 
-    func test_같은키로제출하면_제출순서대로실행한다() async throws {
+    @Test
+    func 같은키로제출하면_제출순서대로실행한다() async throws {
         let sut = KeyedSerialQueue<String>()
         let order = Locked<[Int]>([])
 
@@ -20,10 +22,11 @@ final class KeyedSerialQueueTests: XCTestCase {
             _ = try await task.value
         }
 
-        XCTAssertEqual(order.value, Array(1 ... 20))
+        #expect(order.value == Array(1 ... 20))
     }
 
-    func test_같은키의앞작업이멈춰있으면_뒤작업도멈춘다() async throws {
+    @Test
+    func 같은키의앞작업이멈춰있으면_뒤작업도멈춘다() async throws {
         let sut = KeyedSerialQueue<String>()
         let gate = Gate()
         let didStartSecond = Locked(false)
@@ -34,14 +37,15 @@ final class KeyedSerialQueueTests: XCTestCase {
         await gate.waitUntilArrived()
 
         let stayedIdle = await stayFalse { didStartSecond.value }
-        XCTAssertTrue(stayedIdle)
+        #expect(stayedIdle)
 
         gate.open()
         _ = try await first.value
         _ = try await second.value
     }
 
-    func test_다른키의작업은_앞키가멈춰있어도실행된다() async throws {
+    @Test
+    func 다른키의작업은_앞키가멈춰있어도실행된다() async throws {
         let sut = KeyedSerialQueue<String>()
         let blocker = Gate()
 
@@ -49,13 +53,14 @@ final class KeyedSerialQueueTests: XCTestCase {
         let independent = sut.enqueue("책B") { "완료" }
 
         let result = try await independent.value
-        XCTAssertEqual(result, "완료")
+        #expect(result == "완료")
 
         blocker.open()
         _ = try await blocked.value
     }
 
-    func test_같은키에여러작업을제출하면_하나도생략하지않고전부실행한다() async throws {
+    @Test
+    func 같은키에여러작업을제출하면_하나도생략하지않고전부실행한다() async throws {
         let sut = KeyedSerialQueue<String>()
         let runCount = Locked(0)
 
@@ -66,10 +71,11 @@ final class KeyedSerialQueueTests: XCTestCase {
             _ = try await task.value
         }
 
-        XCTAssertEqual(runCount.value, 5)
+        #expect(runCount.value == 5)
     }
 
-    func test_키의체인이비면_내부사전에서그키가사라진다() async throws {
+    @Test
+    func 키의체인이비면_내부사전에서그키가사라진다() async throws {
         let sut = KeyedSerialQueue<String>()
 
         for index in 0 ..< 50 {
@@ -77,10 +83,11 @@ final class KeyedSerialQueueTests: XCTestCase {
         }
 
         let didDrain = await waitUntil { sut.trackedKeyCount == 0 }
-        XCTAssertTrue(didDrain, "남은 키: \(sut.trackedKeyCount)")
+        #expect(didDrain, "남은 키: \(sut.trackedKeyCount)")
     }
 
-    func test_체인정리중에같은키로새작업이오면_새체인은지워지지않는다() async throws {
+    @Test
+    func 체인정리중에같은키로새작업이오면_새체인은지워지지않는다() async throws {
         let sut = KeyedSerialQueue<String>()
         let gate = Gate()
 
@@ -94,6 +101,6 @@ final class KeyedSerialQueueTests: XCTestCase {
         gate.open()
 
         let result = try await following.value
-        XCTAssertEqual(result, "이후")
+        #expect(result == "이후")
     }
 }
