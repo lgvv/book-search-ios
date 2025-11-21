@@ -1,11 +1,12 @@
 import UIKit
-import XCTest
+import Foundation
+import Testing
 
 import TestSupport
 
 @testable import ImageLoader
 
-final class DeduplicationStageTests: XCTestCase {
+struct DeduplicationStageTests {
 
     private static let coverURL = URL(string: "https://picsum.photos/seed/1/200/300")!
 
@@ -36,7 +37,8 @@ final class DeduplicationStageTests: XCTestCase {
         }
     }
 
-    func test_같은요청이동시에오면_아래스테이지를한번만실행한다() async throws {
+    @Test
+    func 같은요청이동시에오면_아래스테이지를한번만실행한다() async throws {
         let gate = Gate()
         let callCount = Locked(0)
         let sut = Self.makePipeline(gate: gate, callCount: callCount)
@@ -48,10 +50,11 @@ final class DeduplicationStageTests: XCTestCase {
         gate.open()
         _ = try await (first, second, third)
 
-        XCTAssertEqual(callCount.value, 1)
+        #expect(callCount.value == 1)
     }
 
-    func test_합류한요청들은_모두같은결과를받는다() async throws {
+    @Test
+    func 합류한요청들은_모두같은결과를받는다() async throws {
         let gate = Gate()
         let callCount = Locked(0)
         let sut = Self.makePipeline(gate: gate, callCount: callCount)
@@ -62,10 +65,11 @@ final class DeduplicationStageTests: XCTestCase {
         gate.open()
         let (a, b) = try await (first, second)
 
-        XCTAssertIdentical(a.image, b.image)
+        #expect(a.image === b.image)
     }
 
-    func test_앞요청이끝난뒤에오면_다시실행한다() async throws {
+    @Test
+    func 앞요청이끝난뒤에오면_다시실행한다() async throws {
         let gate = Gate()
         let callCount = Locked(0)
         let sut = Self.makePipeline(gate: gate, callCount: callCount)
@@ -74,10 +78,11 @@ final class DeduplicationStageTests: XCTestCase {
         _ = try await sut.load(Self.context())
         _ = try await sut.load(Self.context())
 
-        XCTAssertEqual(callCount.value, 2)
+        #expect(callCount.value == 2)
     }
 
-    func test_디코드크기가다르면_합류시키지않는다() async throws {
+    @Test
+    func 디코드크기가다르면_합류시키지않는다() async throws {
         let gate = Gate()
         let callCount = Locked(0)
         let sut = Self.makePipeline(gate: gate, callCount: callCount)
@@ -88,10 +93,11 @@ final class DeduplicationStageTests: XCTestCase {
         gate.open()
         _ = try await (small, large)
 
-        XCTAssertEqual(callCount.value, 2)
+        #expect(callCount.value == 2)
     }
 
-    func test_캐시정책이다르면_합류시키지않는다() async throws {
+    @Test
+    func 캐시정책이다르면_합류시키지않는다() async throws {
         let gate = Gate()
         let callCount = Locked(0)
         let sut = Self.makePipeline(gate: gate, callCount: callCount)
@@ -102,10 +108,11 @@ final class DeduplicationStageTests: XCTestCase {
         gate.open()
         _ = try await (standard, memoryOnly)
 
-        XCTAssertEqual(callCount.value, 2)
+        #expect(callCount.value == 2)
     }
 
-    func test_재검증요청은_합류대상에서제외한다() async throws {
+    @Test
+    func 재검증요청은_합류대상에서제외한다() async throws {
         let gate = Gate()
         let callCount = Locked(0)
         let sut = Self.makePipeline(gate: gate, callCount: callCount)
@@ -116,10 +123,11 @@ final class DeduplicationStageTests: XCTestCase {
         gate.open()
         _ = try await (display, revalidate)
 
-        XCTAssertEqual(callCount.value, 2)
+        #expect(callCount.value == 2)
     }
 
-    func test_마지막대기자가취소되면_공유작업도취소된다() async {
+    @Test
+    func 마지막대기자가취소되면_공유작업도취소된다() async {
         let started = Gate()
         let wasCancelled = Locked(false)
         let sut = ImageLoadPipeline(stages: [.deduplication()]) { _ in
@@ -140,10 +148,11 @@ final class DeduplicationStageTests: XCTestCase {
         caller.cancel()
 
         let didCancel = await waitUntil { wasCancelled.value }
-        XCTAssertTrue(didCancel)
+        #expect(didCancel)
     }
 
-    func test_대기자가남아있으면_한쪽이취소돼도공유작업은계속된다() async {
+    @Test
+    func 대기자가남아있으면_한쪽이취소돼도공유작업은계속된다() async {
         let gate = Gate()
         let callCount = Locked(0)
         let sut = Self.makePipeline(gate: gate, callCount: callCount)
@@ -157,12 +166,12 @@ final class DeduplicationStageTests: XCTestCase {
             source.withValue { $0 = outcome?.source }
         }
         let didJoin = await waitUntil { callCount.value == 1 }
-        XCTAssertTrue(didJoin)
+        #expect(didJoin)
 
         first.cancel()
         gate.open()
 
         await second.value
-        XCTAssertEqual(source.value, .network)
+        #expect(source.value == .network)
     }
 }
