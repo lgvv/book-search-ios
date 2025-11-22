@@ -1,4 +1,5 @@
-import XCTest
+import Foundation
+import Testing
 
 import BookCore
 import BookModel
@@ -7,7 +8,7 @@ import TestSupport
 
 @testable import BookData
 
-final class DefaultBookRepositoryTests: XCTestCase {
+struct DefaultBookRepositoryTests {
 
     private let baseURL = URL(string: "https://api.booksearch.dev")!
 
@@ -42,7 +43,8 @@ final class DefaultBookRepositoryTests: XCTestCase {
         }
     }
 
-    func test_검색하면_질의와페이지와크기를질의문자열에싣는다() async throws {
+    @Test
+    func 검색하면_질의와페이지와크기를질의문자열에싣는다() async throws {
         let (sut, transport) = self.makeSUT(
             pageSize: 30,
             handler: self.makeSearchResponse(items: [], page: 2, pageSize: 30, totalCount: 0)
@@ -50,26 +52,28 @@ final class DefaultBookRepositoryTests: XCTestCase {
 
         _ = try await sut.search(query: "민음사", page: 2)
 
-        let request = try XCTUnwrap(transport.requests.value.first)
-        let components = try XCTUnwrap(URLComponents(url: request.url, resolvingAgainstBaseURL: false))
-        XCTAssertEqual(components.path, "/v1/books")
-        XCTAssertEqual(components.queryItems?.first { $0.name == "query" }?.value, "민음사")
-        XCTAssertEqual(components.queryItems?.first { $0.name == "page" }?.value, "2")
-        XCTAssertEqual(components.queryItems?.first { $0.name == "size" }?.value, "30")
+        let request = try #require(transport.requests.value.first)
+        let components = try #require(URLComponents(url: request.url, resolvingAgainstBaseURL: false))
+        #expect(components.path == "/v1/books")
+        #expect(components.queryItems?.first { $0.name == "query" }?.value == "민음사")
+        #expect(components.queryItems?.first { $0.name == "page" }?.value == "2")
+        #expect(components.queryItems?.first { $0.name == "size" }?.value == "30")
     }
 
-    func test_한글질의도_퍼센트인코딩되어나간다() async throws {
+    @Test
+    func 한글질의도_퍼센트인코딩되어나간다() async throws {
         let (sut, transport) = self.makeSUT(
             handler: self.makeSearchResponse(items: [], page: 1, pageSize: 20, totalCount: 0)
         )
 
         _ = try await sut.search(query: "토지 완전판", page: 1)
 
-        let request = try XCTUnwrap(transport.requests.value.first)
-        XCTAssertTrue(request.url.absoluteString.contains("%ED%86%A0%EC%A7%80"))
+        let request = try #require(transport.requests.value.first)
+        #expect(request.url.absoluteString.contains("%ED%86%A0%EC%A7%80"))
     }
 
-    func test_단건조회하면_isbn을경로에붙인다() async throws {
+    @Test
+    func 단건조회하면_isbn을경로에붙인다() async throws {
         let body = Data(#"{"isbn":"1","title":"파친코","author":null,"publisher":null,"publishedAt":null,"coverImageURL":null}"#.utf8)
         let (sut, transport) = self.makeSUT { request in
             HTTPResponse(requestURL: request.url, statusCode: 200, headers: [:], body: body)
@@ -77,14 +81,12 @@ final class DefaultBookRepositoryTests: XCTestCase {
 
         _ = try await sut.book(isbn: "9788937473135")
 
-        let request = try XCTUnwrap(transport.requests.value.first)
-        XCTAssertEqual(
-            request.url.absoluteString,
-            "https://api.booksearch.dev/v1/books/9788937473135"
-        )
+        let request = try #require(transport.requests.value.first)
+        #expect(request.url.absoluteString == "https://api.booksearch.dev/v1/books/9788937473135")
     }
 
-    func test_받은건수가전체보다적으면_다음페이지가있다() async throws {
+    @Test
+    func 받은건수가전체보다적으면_다음페이지가있다() async throws {
         let (sut, _) = self.makeSUT(
             handler: self.makeSearchResponse(
                 items: [(isbn: "1", title: "책1")],
@@ -96,12 +98,13 @@ final class DefaultBookRepositoryTests: XCTestCase {
 
         let page = try await sut.search(query: "민음사", page: 1)
 
-        XCTAssertTrue(page.hasNext)
-        XCTAssertEqual(page.totalCount, 100)
-        XCTAssertEqual(page.pageNo, 1)
+        #expect(page.hasNext)
+        #expect(page.totalCount == 100)
+        #expect(page.pageNo == 1)
     }
 
-    func test_현재페이지까지의누적이전체와같으면_다음페이지가없다() async throws {
+    @Test
+    func 현재페이지까지의누적이전체와같으면_다음페이지가없다() async throws {
         let (sut, _) = self.makeSUT(
             handler: self.makeSearchResponse(
                 items: [(isbn: "1", title: "책1")],
@@ -113,10 +116,11 @@ final class DefaultBookRepositoryTests: XCTestCase {
 
         let page = try await sut.search(query: "민음사", page: 5)
 
-        XCTAssertFalse(page.hasNext)
+        #expect(!(page.hasNext))
     }
 
-    func test_누적이전체를넘으면_다음페이지가없다() async throws {
+    @Test
+    func 누적이전체를넘으면_다음페이지가없다() async throws {
         let (sut, _) = self.makeSUT(
             handler: self.makeSearchResponse(
                 items: [(isbn: "1", title: "책1")],
@@ -128,22 +132,24 @@ final class DefaultBookRepositoryTests: XCTestCase {
 
         let page = try await sut.search(query: "민음사", page: 6)
 
-        XCTAssertFalse(page.hasNext)
+        #expect(!(page.hasNext))
     }
 
-    func test_결과가하나도없으면_빈페이지를돌려준다() async throws {
+    @Test
+    func 결과가하나도없으면_빈페이지를돌려준다() async throws {
         let (sut, _) = self.makeSUT(
             handler: self.makeSearchResponse(items: [], page: 1, pageSize: 20, totalCount: 0)
         )
 
         let page = try await sut.search(query: "존재하지않는책", page: 1)
 
-        XCTAssertEqual(page.books, [])
-        XCTAssertEqual(page.totalCount, 0)
-        XCTAssertFalse(page.hasNext)
+        #expect(page.books == [])
+        #expect(page.totalCount == 0)
+        #expect(!(page.hasNext))
     }
 
-    func test_응답항목을_도메인모델로옮긴다() async throws {
+    @Test
+    func 응답항목을_도메인모델로옮긴다() async throws {
         let body = Data("""
         {"items":[{"isbn":"1","title":"파친코","author":"이민진","publisher":"인플루엔셜","publishedAt":"2022.08.05","coverImageURL":"https://example.com/1.jpg"}],"page":1,"pageSize":20,"totalCount":1}
         """.utf8)
@@ -153,20 +159,18 @@ final class DefaultBookRepositoryTests: XCTestCase {
 
         let page = try await sut.search(query: "파친코", page: 1)
 
-        XCTAssertEqual(
-            page.books.first,
-            Book(
+        #expect(page.books.first == Book(
                 isbn: "1",
                 title: "파친코",
                 author: "이민진",
                 publisher: "인플루엔셜",
                 publishedAt: "2022.08.05",
                 coverImageURL: URL(string: "https://example.com/1.jpg")
-            )
-        )
+            ))
     }
 
-    func test_표지URL이빈문자열이면_nil로옮긴다() async throws {
+    @Test
+    func 표지URL이빈문자열이면_nil로옮긴다() async throws {
         let body = Data(#"{"items":[{"isbn":"1","title":"책","author":null,"publisher":null,"publishedAt":null,"coverImageURL":""}],"page":1,"pageSize":20,"totalCount":1}"#.utf8)
         let (sut, _) = self.makeSUT { request in
             HTTPResponse(requestURL: request.url, statusCode: 200, headers: [:], body: body)
@@ -174,10 +178,11 @@ final class DefaultBookRepositoryTests: XCTestCase {
 
         let page = try await sut.search(query: "책", page: 1)
 
-        XCTAssertNil(page.books.first?.coverImageURL)
+        #expect(page.books.first?.coverImageURL == nil)
     }
 
-    func test_없는책을조회하면_404를nil로본다() async throws {
+    @Test
+    func 없는책을조회하면_404를nil로본다() async throws {
         let (sut, _) = self.makeSUT { request in
             let response = HTTPResponse(requestURL: request.url, statusCode: 404, headers: [:], body: nil)
             throw HTTPFailure(
@@ -189,10 +194,11 @@ final class DefaultBookRepositoryTests: XCTestCase {
 
         let book = try await sut.book(isbn: "없는isbn")
 
-        XCTAssertNil(book)
+        #expect(book == nil)
     }
 
-    func test_단건조회가404외의오류로실패하면_던진다() async {
+    @Test
+    func 단건조회가404외의오류로실패하면_던진다() async {
         let (sut, _) = self.makeSUT { request in
             let response = HTTPResponse(requestURL: request.url, statusCode: 500, headers: [:], body: nil)
             throw HTTPFailure(
@@ -204,13 +210,14 @@ final class DefaultBookRepositoryTests: XCTestCase {
 
         do {
             _ = try await sut.book(isbn: "1")
-            XCTFail("실패해야 한다")
+            Issue.record("실패해야 한다")
         } catch {
-            XCTAssertTrue(error is HTTPFailure)
+            #expect(error is HTTPFailure)
         }
     }
 
-    func test_검색이실패하면_던진다() async {
+    @Test
+    func 검색이실패하면_던진다() async {
         let (sut, _) = self.makeSUT { request in
             let response = HTTPResponse(requestURL: request.url, statusCode: 503, headers: [:], body: nil)
             throw HTTPFailure(
@@ -222,9 +229,9 @@ final class DefaultBookRepositoryTests: XCTestCase {
 
         do {
             _ = try await sut.search(query: "민음사", page: 1)
-            XCTFail("실패해야 한다")
+            Issue.record("실패해야 한다")
         } catch {
-            XCTAssertTrue(error is HTTPFailure)
+            #expect(error is HTTPFailure)
         }
     }
 }
