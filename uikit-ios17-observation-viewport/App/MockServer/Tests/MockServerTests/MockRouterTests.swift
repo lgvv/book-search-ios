@@ -1,10 +1,11 @@
-import XCTest
+import Foundation
+import Testing
 
 import TestSupport
 
 @testable import MockServer
 
-final class MockRouterTests: XCTestCase {
+struct MockRouterTests {
 
     private func makeSUT(
         routes: [MockRoute],
@@ -16,18 +17,20 @@ final class MockRouterTests: XCTestCase {
         )
     }
 
-    func test_경로와메서드가맞으면_그핸들러로보낸다() async throws {
+    @Test
+    func 경로와메서드가맞으면_그핸들러로보낸다() async throws {
         let sut = self.makeSUT(routes: [
             StubRouteCollection.naming("책목록", .get, ["v1", "books"])
         ])
 
         let response = try await sut.respond(to: URLRequest.get("https://api.booksearch.dev/v1/books"))
 
-        XCTAssertEqual(response.statusCode, 200)
-        XCTAssertEqual(String(data: response.body, encoding: .utf8), "책목록")
+        #expect(response.statusCode == 200)
+        #expect(String(data: response.body, encoding: .utf8) == "책목록")
     }
 
-    func test_경로파라미터를_핸들러에전달한다() async throws {
+    @Test
+    func 경로파라미터를_핸들러에전달한다() async throws {
         let sut = self.makeSUT(routes: [
             StubRouteCollection.echoing(.get, ["v1", "books", .parameter("isbn")])
         ])
@@ -36,10 +39,11 @@ final class MockRouterTests: XCTestCase {
             to: URLRequest.get("https://api.booksearch.dev/v1/books/9788937473135")
         )
 
-        XCTAssertEqual(response.json["isbn"] as? String, "9788937473135")
+        #expect((response.json["isbn"] as? String) == "9788937473135")
     }
 
-    func test_파라미터가여럿이면_모두전달한다() async throws {
+    @Test
+    func 파라미터가여럿이면_모두전달한다() async throws {
         let sut = self.makeSUT(routes: [
             StubRouteCollection.echoing(
                 .get,
@@ -49,22 +53,24 @@ final class MockRouterTests: XCTestCase {
 
         let response = try await sut.respond(to: URLRequest.get("https://api.booksearch.dev/v1/books/1"))
 
-        XCTAssertEqual(response.json["domain"] as? String, "books")
-        XCTAssertEqual(response.json["id"] as? String, "1")
+        #expect((response.json["domain"] as? String) == "books")
+        #expect((response.json["id"] as? String) == "1")
     }
 
-    func test_경로부터없으면_404를돌려준다() async throws {
+    @Test
+    func 경로부터없으면_404를돌려준다() async throws {
         let sut = self.makeSUT(routes: [
             StubRouteCollection.naming("책목록", .get, ["v1", "books"])
         ])
 
         let response = try await sut.respond(to: URLRequest.get("https://api.booksearch.dev/v1/없는것"))
 
-        XCTAssertEqual(response.statusCode, 404)
-        XCTAssertEqual(response.errorCode, "NOT_FOUND")
+        #expect(response.statusCode == 404)
+        #expect(response.errorCode == "NOT_FOUND")
     }
 
-    func test_경로는맞고메서드만다르면_405를돌려준다() async throws {
+    @Test
+    func 경로는맞고메서드만다르면_405를돌려준다() async throws {
         let sut = self.makeSUT(routes: [
             StubRouteCollection.naming("책목록", .get, ["v1", "books"])
         ])
@@ -73,11 +79,12 @@ final class MockRouterTests: XCTestCase {
             to: URLRequest.make(.delete, "https://api.booksearch.dev/v1/books")
         )
 
-        XCTAssertEqual(response.statusCode, 405)
-        XCTAssertEqual(response.errorCode, "METHOD_NOT_ALLOWED")
+        #expect(response.statusCode == 405)
+        #expect(response.errorCode == "METHOD_NOT_ALLOWED")
     }
 
-    func test_405응답은_허용메서드를Allow헤더에담는다() async throws {
+    @Test
+    func 응답이405면_허용메서드를Allow헤더에담는다() async throws {
         let sut = self.makeSUT(routes: [
             StubRouteCollection.naming("조회", .get, ["v1", "favorites"]),
             StubRouteCollection.naming("추가", .post, ["v1", "favorites"]),
@@ -87,10 +94,11 @@ final class MockRouterTests: XCTestCase {
             to: URLRequest.make(.delete, "https://api.booksearch.dev/v1/favorites")
         )
 
-        XCTAssertEqual(response.headers["Allow"], "GET, POST")
+        #expect(response.headers["Allow"] == "GET, POST")
     }
 
-    func test_세그먼트개수가다르면_경로가일치하지않는다() async throws {
+    @Test
+    func 세그먼트개수가다르면_경로가일치하지않는다() async throws {
         let sut = self.makeSUT(routes: [
             StubRouteCollection.naming("책목록", .get, ["v1", "books"])
         ])
@@ -99,10 +107,11 @@ final class MockRouterTests: XCTestCase {
             to: URLRequest.get("https://api.booksearch.dev/v1/books/1/reviews")
         )
 
-        XCTAssertEqual(response.statusCode, 404)
+        #expect(response.statusCode == 404)
     }
 
-    func test_고정세그먼트가_파라미터보다먼저매칭된다() async throws {
+    @Test
+    func 고정세그먼트가_파라미터보다먼저매칭된다() async throws {
         let sut = self.makeSUT(routes: [
             StubRouteCollection.naming("단건", .get, ["v1", "books", .parameter("isbn")]),
             StubRouteCollection.naming("인기", .get, ["v1", "books", "popular"]),
@@ -112,10 +121,11 @@ final class MockRouterTests: XCTestCase {
             to: URLRequest.get("https://api.booksearch.dev/v1/books/popular")
         )
 
-        XCTAssertEqual(String(data: response.body, encoding: .utf8), "인기")
+        #expect(String(data: response.body, encoding: .utf8) == "인기")
     }
 
-    func test_고정라우트에걸리지않는값은_파라미터라우트가받는다() async throws {
+    @Test
+    func 고정라우트에걸리지않는값은_파라미터라우트가받는다() async throws {
         let sut = self.makeSUT(routes: [
             StubRouteCollection.naming("단건", .get, ["v1", "books", .parameter("isbn")]),
             StubRouteCollection.naming("인기", .get, ["v1", "books", "popular"]),
@@ -125,10 +135,11 @@ final class MockRouterTests: XCTestCase {
             to: URLRequest.get("https://api.booksearch.dev/v1/books/9788937473135")
         )
 
-        XCTAssertEqual(String(data: response.body, encoding: .utf8), "단건")
+        #expect(String(data: response.body, encoding: .utf8) == "단건")
     }
 
-    func test_미들웨어는_앞이바깥이다() async throws {
+    @Test
+    func 미들웨어는_앞이바깥이다() async throws {
         let trace = Locked<[String]>([])
         let sut = self.makeSUT(
             routes: [StubRouteCollection.naming("핸들러", .get, ["v1", "books"])],
@@ -140,13 +151,11 @@ final class MockRouterTests: XCTestCase {
 
         _ = try await sut.respond(to: URLRequest.get("https://api.booksearch.dev/v1/books"))
 
-        XCTAssertEqual(
-            trace.value,
-            ["바깥-진입", "안쪽-진입", "안쪽-이탈", "바깥-이탈"]
-        )
+        #expect(trace.value == ["바깥-진입", "안쪽-진입", "안쪽-이탈", "바깥-이탈"])
     }
 
-    func test_예외변환은_가장안쪽에서일어난다() async throws {
+    @Test
+    func 예외변환은_가장안쪽에서일어난다() async throws {
         let observed = Locked<Int?>(nil)
         let sut = self.makeSUT(
             routes: [
@@ -159,10 +168,11 @@ final class MockRouterTests: XCTestCase {
 
         _ = try await sut.respond(to: URLRequest.get("https://api.booksearch.dev/v1/books"))
 
-        XCTAssertEqual(observed.value, 404)
+        #expect(observed.value == 404)
     }
 
-    func test_라우트를찾지못한요청도_미들웨어를지난다() async throws {
+    @Test
+    func 라우트를찾지못한요청도_미들웨어를지난다() async throws {
         let observed = Locked<Int?>(nil)
         let sut = self.makeSUT(
             routes: [StubRouteCollection.naming("책목록", .get, ["v1", "books"])],
@@ -171,10 +181,11 @@ final class MockRouterTests: XCTestCase {
 
         _ = try await sut.respond(to: URLRequest.get("https://api.booksearch.dev/v1/없는것"))
 
-        XCTAssertEqual(observed.value, 404)
+        #expect(observed.value == 404)
     }
 
-    func test_핸들러가정체모를오류를던지면_500으로바꾸고상세를숨긴다() async throws {
+    @Test
+    func 핸들러가정체모를오류를던지면_500으로바꾸고상세를숨긴다() async throws {
         struct InternalTrouble: Error { let sensitiveValue = "DB 비밀번호" }
         let sut = self.makeSUT(routes: [
             MockRoute(.get, ["v1", "books"]) { _ in throw InternalTrouble() }
@@ -182,31 +193,33 @@ final class MockRouterTests: XCTestCase {
 
         let response = try await sut.respond(to: URLRequest.get("https://api.booksearch.dev/v1/books"))
 
-        XCTAssertEqual(response.statusCode, 500)
-        XCTAssertEqual(response.errorCode, "INTERNAL_ERROR")
+        #expect(response.statusCode == 500)
+        #expect(response.errorCode == "INTERNAL_ERROR")
         let body = String(data: response.body, encoding: .utf8) ?? ""
-        XCTAssertFalse(body.contains("DB 비밀번호"))
+        #expect(!(body.contains("DB 비밀번호")))
     }
 
-    func test_취소는_응답으로바꾸지않고그대로올린다() async {
+    @Test
+    func 취소는_응답으로바꾸지않고그대로올린다() async {
         let sut = self.makeSUT(routes: [
             MockRoute(.get, ["v1", "books"]) { _ in throw CancellationError() }
         ])
 
         do {
             _ = try await sut.respond(to: URLRequest.get("https://api.booksearch.dev/v1/books"))
-            XCTFail("취소가 전달되어야 한다")
+            Issue.record("취소가 전달되어야 한다")
         } catch {
-            XCTAssertTrue(error is CancellationError)
+            #expect(error is CancellationError)
         }
     }
 
-    func test_URL이없는요청은_400을돌려준다() async throws {
+    @Test
+    func URL이없는요청은_400을돌려준다() async throws {
         let sut = self.makeSUT(routes: [])
 
         let response = try await sut.respond(to: URLRequest(url: URL(string: "about:blank")!))
 
-        XCTAssertGreaterThanOrEqual(response.statusCode, 400)
+        #expect(response.statusCode >= 400)
     }
 }
 
