@@ -1,5 +1,6 @@
 import Combine
-import XCTest
+import Foundation
+import Testing
 
 import BookCore
 import BookModel
@@ -14,7 +15,7 @@ import TestSupport
 @testable import SearchFeature
 
 @MainActor
-final class SearchStoreTests: XCTestCase {
+struct SearchStoreTests {
 
     private func makeBook(_ isbn: String) -> Book {
         Book(isbn: isbn, title: "책 \(isbn)")
@@ -65,34 +66,38 @@ final class SearchStoreTests: XCTestCase {
         return (store, recorder)
     }
 
-    func test_화면이뜨면_최근검색어를읽는다() async {
+    @Test
+    func 화면이뜨면_최근검색어를읽는다() async {
         let (store, recorder) = self.makeStore()
 
         store.send(.viewDidLoad)
 
         let didLoad = await waitUntil { recorder.contains("listTerms") }
-        XCTAssertTrue(didLoad)
+        #expect(didLoad)
     }
 
-    func test_입력직후에는_검색요청이나가지않는다() async {
+    @Test
+    func 입력직후에는_검색요청이나가지않는다() async {
         let (store, recorder) = self.makeStore()
 
         store.send(.queryChanged("민음사"))
 
         let stayedQuiet = await stayFalse({ recorder.contains("search(민음사,1)") }, for: 0.1)
-        XCTAssertTrue(stayedQuiet)
+        #expect(stayedQuiet)
     }
 
-    func test_입력후기다리면_검색요청이나간다() async {
+    @Test
+    func 입력후기다리면_검색요청이나간다() async {
         let (store, recorder) = self.makeStore()
 
         store.send(.queryChanged("민음사"))
 
         let didSearch = await waitUntil({ recorder.contains("search(민음사,1)") }, timeout: 3)
-        XCTAssertTrue(didSearch)
+        #expect(didSearch)
     }
 
-    func test_대기중에새입력이오면_이전요청은나가지않는다() async {
+    @Test
+    func 대기중에새입력이오면_이전요청은나가지않는다() async {
         let (store, recorder) = self.makeStore()
         store.send(.queryChanged("민"))
         store.send(.queryChanged("민음"))
@@ -100,22 +105,24 @@ final class SearchStoreTests: XCTestCase {
         store.send(.queryChanged("민음사"))
 
         let didSearch = await waitUntil({ recorder.contains("search(민음사,1)") }, timeout: 3)
-        XCTAssertTrue(didSearch)
-        XCTAssertFalse(recorder.contains("search(민,1)"))
-        XCTAssertFalse(recorder.contains("search(민음,1)"))
+        #expect(didSearch)
+        #expect(!(recorder.contains("search(민,1)")))
+        #expect(!(recorder.contains("search(민음,1)")))
     }
 
-    func test_입력을비우면_대기중인검색이취소된다() async {
+    @Test
+    func 입력을비우면_대기중인검색이취소된다() async {
         let (store, recorder) = self.makeStore()
         store.send(.queryChanged("민음사"))
 
         store.send(.queryChanged(""))
 
         let stayedQuiet = await stayFalse({ recorder.contains("search(민음사,1)") }, for: 0.5)
-        XCTAssertTrue(stayedQuiet)
+        #expect(stayedQuiet)
     }
 
-    func test_검색이성공하면_결과가상태에담긴다() async {
+    @Test
+    func 검색이성공하면_결과가상태에담긴다() async {
         let page = SearchPage(
             books: [Book(isbn: "1", title: "파친코")],
             pageNo: 1,
@@ -127,31 +134,34 @@ final class SearchStoreTests: XCTestCase {
         store.send(.submitQuery("파친코"))
 
         let didLoad = await waitUntil { @MainActor in store.state.books.count == 1 }
-        XCTAssertTrue(didLoad)
-        XCTAssertEqual(store.state.books.first?.isbn, "1")
-        XCTAssertEqual(store.state.pagination, .exhausted)
+        #expect(didLoad)
+        #expect(store.state.books.first?.isbn == "1")
+        #expect(store.state.pagination == .exhausted)
     }
 
-    func test_검색이실패하면_실패상태로남는다() async {
+    @Test
+    func 검색이실패하면_실패상태로남는다() async {
         struct Boom: Error {}
         let (store, _) = self.makeStore(search: { _, _ in throw Boom() })
 
         store.send(.submitQuery("파친코"))
 
         let didFail = await waitUntil { @MainActor in store.state.pagination == .failed }
-        XCTAssertTrue(didFail)
+        #expect(didFail)
     }
 
-    func test_하트를누르면_즐겨찾기추가를제출한다() async {
+    @Test
+    func 하트를누르면_즐겨찾기추가를제출한다() async {
         let (store, recorder) = self.makeStore()
 
         store.send(.toggleFavorite(self.makeBook("1")))
 
         let didSubmit = await waitUntil { recorder.contains("addFavorite(1)") }
-        XCTAssertTrue(didSubmit)
+        #expect(didSubmit)
     }
 
-    func test_이미즐겨찾기인책의하트를누르면_제거를제출한다() async {
+    @Test
+    func 이미즐겨찾기인책의하트를누르면_제거를제출한다() async {
         let (store, recorder) = self.makeStore()
         store.send(.toggleFavorite(self.makeBook("1")))
         _ = await waitUntil { recorder.contains("addFavorite(1)") }
@@ -159,30 +169,33 @@ final class SearchStoreTests: XCTestCase {
         store.send(.toggleFavorite(self.makeBook("1")))
 
         let didRemove = await waitUntil { recorder.contains("removeFavorite(1)") }
-        XCTAssertTrue(didRemove)
+        #expect(didRemove)
     }
 
-    func test_검색을제출하면_최근검색어로기록하고목록을다시읽는다() async {
+    @Test
+    func 검색을제출하면_최근검색어로기록하고목록을다시읽는다() async {
         let (store, recorder) = self.makeStore()
 
         store.send(.submitQuery("파친코"))
 
         let didRecord = await waitUntil { recorder.contains("recordTerm(파친코)") }
-        XCTAssertTrue(didRecord)
-        XCTAssertTrue(recorder.contains("listTerms"))
+        #expect(didRecord)
+        #expect(recorder.contains("listTerms"))
     }
 
-    func test_최근검색어를지우면_삭제하고목록을다시읽는다() async {
+    @Test
+    func 최근검색어를지우면_삭제하고목록을다시읽는다() async {
         let (store, recorder) = self.makeStore()
 
         store.send(.removeRecentTerm("민음사"))
 
         let didRemove = await waitUntil { recorder.contains("removeTerm(민음사)") }
-        XCTAssertTrue(didRemove)
-        XCTAssertTrue(recorder.contains("listTerms"))
+        #expect(didRemove)
+        #expect(recorder.contains("listTerms"))
     }
 
-    func test_책을고르면_위임으로알린다() {
+    @Test
+    func 책을고르면_위임으로알린다() {
         let (store, _) = self.makeStore()
         let selected = Locked<Book?>(nil)
         store.onDelegate = { action in
@@ -193,16 +206,17 @@ final class SearchStoreTests: XCTestCase {
 
         store.send(.selectBook(self.makeBook("1")))
 
-        XCTAssertEqual(selected.value?.isbn, "1")
+        #expect(selected.value?.isbn == "1")
     }
 
-    func test_상태를구독하면_현재값으로한번렌더한다() {
+    @Test
+    func 상태를구독하면_현재값으로한번렌더한다() {
         let (store, _) = self.makeStore()
         var rendered: [Int] = []
 
         store.subscribe(\.books.count) { _, new in rendered.append(new) }
 
-        XCTAssertEqual(rendered, [0])
+        #expect(rendered == [0])
     }
 }
 
