@@ -4,6 +4,7 @@ import BookModel
 import BookUI
 import CommonUI
 import DesignSystem
+import FeatureSupport
 import ImageUI
 import SharedFoundation
 
@@ -16,12 +17,21 @@ final class FavoriteViewController: UIViewController {
     private let store: FavoriteStore
     private var dataSource: UICollectionViewDiffableDataSource<FavoriteSection, Book>?
 
+    private var observer: StateObserver?
+
+    private var booksRender = Rendered<ResourceState<[Book]>>()
+    private var memoISBNsRender = Rendered<Set<String>>()
+
     private func observe() {
-        store.subscribe(\.memoISBNs) { [weak self] old, new in
-            self?.applyMemos(from: old, to: new)
-        }
-        store.subscribe(\.books) { [weak self] _, books in
-            self?.applyBooks(books)
+        self.observer = StateObserver { [weak self] in
+            guard let self else { return }
+
+            if let change = self.memoISBNsRender.changed(to: self.store.state.memoISBNs) {
+                self.applyMemos(from: change.old, to: change.new)
+            }
+            if let change = self.booksRender.changed(to: self.store.state.books) {
+                self.applyBooks(change.new)
+            }
         }
     }
 

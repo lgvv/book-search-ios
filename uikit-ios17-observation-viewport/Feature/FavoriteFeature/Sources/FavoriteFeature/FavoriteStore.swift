@@ -8,29 +8,19 @@ import MemoCore
 import FeatureSupport
 
 @MainActor
+@Observable
 final class FavoriteStore {
-    var onDelegate: ((FavoriteDelegateAction) -> Void)?
+    @ObservationIgnored var onDelegate: ((FavoriteDelegateAction) -> Void)?
 
-    private(set) var state = FavoriteReducer.State() {
-        didSet { subscriptions.notify(from: oldValue, to: state) }
-    }
-
-    private let subscriptions = StateSubscriptions<FavoriteReducer.State>()
-
-    func subscribe<Value: Equatable>(
-        _ scope: @escaping (FavoriteReducer.State) -> Value,
-        render: @escaping (_ old: Value?, _ new: Value) -> Void
-    ) {
-        subscriptions.add(scope: scope, current: state, render: render)
-    }
+    private(set) var state = FavoriteReducer.State()
 
     private let reducer = FavoriteReducer()
     private let tasks = TaskScope<FavoriteReducer.CancelID>()
     private let nonCancellables = NonCancellableTaskQueue<FavoriteReducer.CancelID>()
     private let queue = ActionQueue<FavoriteReducer.Action>()
 
-    @Resolved(FavoriteClientKey.self) private var favoriteClient
-    @Resolved(MemoClientKey.self) private var memoClient
+    @ObservationIgnored @Resolved(FavoriteClientKey.self) private var favoriteClient
+    @ObservationIgnored @Resolved(MemoClientKey.self) private var memoClient
 
     func send(_ action: FavoriteReducer.Action.ViewAction) {
         dispatch(.view(action))
