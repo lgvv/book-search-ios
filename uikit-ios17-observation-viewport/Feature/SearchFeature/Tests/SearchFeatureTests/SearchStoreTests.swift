@@ -5,6 +5,7 @@ import Testing
 import BookCore
 import BookModel
 import DependencyResolver
+import FeatureSupport
 import FavoriteCore
 import MemoCore
 import MemoModel
@@ -210,13 +211,28 @@ struct SearchStoreTests {
     }
 
     @Test
-    func 상태를구독하면_현재값으로한번렌더한다() {
+    func 관찰을시작하면_현재값으로한번렌더한다() {
         let (store, _) = self.makeStore()
         var rendered: [Int] = []
 
-        store.subscribe(\.books.count) { _, new in rendered.append(new) }
+        let observer = StateObserver { rendered.append(store.state.books.count) }
 
         #expect(rendered == [0])
+        withExtendedLifetime(observer) {}
+    }
+
+    @Test
+    func 상태가바뀌면_다음차례에다시렌더한다() async {
+        let (store, _) = self.makeStore()
+        var rendered: [Int] = []
+        let observer = StateObserver { rendered.append(store.state.favoriteISBNs.count) }
+
+        store.send(.toggleFavorite(self.makeBook("9788937400001")))
+
+        await Task.yield()
+
+        #expect(rendered == [0, 1])
+        withExtendedLifetime(observer) {}
     }
 }
 

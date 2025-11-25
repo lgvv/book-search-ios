@@ -4,6 +4,7 @@ import BookModel
 import BookUI
 import CommonUI
 import DesignSystem
+import FeatureSupport
 import ImageUI
 
 private enum SearchSection: Hashable {
@@ -66,9 +67,17 @@ final class SearchViewController: UIViewController {
     private let store: SearchStore
     private var dataSource: UICollectionViewDiffableDataSource<SearchSection, SearchItem>?
 
+    private var observer: StateObserver?
+
+    private var searchRender = Rendered<SearchRender>()
+
     private func observe() {
-        store.subscribe(SearchRender.init) { [weak self] old, new in
-            self?.applySnapshot(from: old, to: new)
+        self.observer = StateObserver { [weak self] in
+            guard let self else { return }
+
+            if let change = self.searchRender.changed(to: SearchRender(self.store.state)) {
+                self.applySnapshot(from: change.old, to: change.new)
+            }
         }
     }
 

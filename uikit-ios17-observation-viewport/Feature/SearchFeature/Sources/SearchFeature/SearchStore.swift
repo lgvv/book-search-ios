@@ -10,31 +10,21 @@ import RecentSearchCore
 import FeatureSupport
 
 @MainActor
+@Observable
 final class SearchStore {
-    var onDelegate: ((SearchDelegateAction) -> Void)?
+    @ObservationIgnored var onDelegate: ((SearchDelegateAction) -> Void)?
 
-    private(set) var state = SearchReducer.State() {
-        didSet { subscriptions.notify(from: oldValue, to: state) }
-    }
-
-    private let subscriptions = StateSubscriptions<SearchReducer.State>()
-
-    func subscribe<Value: Equatable>(
-        _ scope: @escaping (SearchReducer.State) -> Value,
-        render: @escaping (_ old: Value?, _ new: Value) -> Void
-    ) {
-        subscriptions.add(scope: scope, current: state, render: render)
-    }
+    private(set) var state = SearchReducer.State()
 
     private let reducer = SearchReducer()
     private let tasks = TaskScope<SearchReducer.CancelID>()
     private let nonCancellables = NonCancellableTaskQueue<SearchReducer.CancelID>()
     private let queue = ActionQueue<SearchReducer.Action>()
 
-    @Resolved(BookSearchClientKey.self) private var bookSearchClient
-    @Resolved(RecentSearchClientKey.self) private var recentSearchClient
-    @Resolved(FavoriteClientKey.self) private var favoriteClient
-    @Resolved(MemoClientKey.self) private var memoClient
+    @ObservationIgnored @Resolved(BookSearchClientKey.self) private var bookSearchClient
+    @ObservationIgnored @Resolved(RecentSearchClientKey.self) private var recentSearchClient
+    @ObservationIgnored @Resolved(FavoriteClientKey.self) private var favoriteClient
+    @ObservationIgnored @Resolved(MemoClientKey.self) private var memoClient
 
     func send(_ action: SearchReducer.Action.ViewAction) {
         dispatch(.view(action))
