@@ -7,28 +7,18 @@ import MemoFeatureInterface
 import FeatureSupport
 
 @MainActor
+@Observable
 final class MemoEditStore {
-    var onDelegate: ((MemoEditDelegateAction) -> Void)?
+    @ObservationIgnored var onDelegate: ((MemoEditDelegateAction) -> Void)?
 
-    private(set) var state: MemoEditReducer.State {
-        didSet { subscriptions.notify(from: oldValue, to: state) }
-    }
-
-    private let subscriptions = StateSubscriptions<MemoEditReducer.State>()
-
-    func subscribe<Value: Equatable>(
-        _ scope: @escaping (MemoEditReducer.State) -> Value,
-        render: @escaping (_ old: Value?, _ new: Value) -> Void
-    ) {
-        subscriptions.add(scope: scope, current: state, render: render)
-    }
+    private(set) var state: MemoEditReducer.State
 
     private let reducer = MemoEditReducer()
     private let tasks = TaskScope<MemoEditReducer.CancelID>()
     private let nonCancellables = NonCancellableTaskQueue<MemoEditReducer.CancelID>()
     private let queue = ActionQueue<MemoEditReducer.Action>()
 
-    @Resolved(MemoClientKey.self) private var memoClient
+    @ObservationIgnored @Resolved(MemoClientKey.self) private var memoClient
 
     init(book: Book) {
         state = .init(book: book)

@@ -20,12 +20,21 @@ final class MemoViewController: UIViewController {
 
     private var dataSource: UICollectionViewDiffableDataSource<MemoSection, String>?
 
+    private var observer: StateObserver?
+
+    private var favoriteISBNsRender = Rendered<Set<String>>()
+    private var memosRender = Rendered<ResourceState<[BookMemo]>>()
+
     private func observe() {
-        store.subscribe(\.favoriteISBNs) { [weak self] old, new in
-            self?.applyFavorites(from: old, to: new)
-        }
-        store.subscribe(\.memos) { [weak self] old, memos in
-            self?.applyMemos(from: old, to: memos)
+        self.observer = StateObserver { [weak self] in
+            guard let self else { return }
+
+            if let change = self.favoriteISBNsRender.changed(to: self.store.state.favoriteISBNs) {
+                self.applyFavorites(from: change.old, to: change.new)
+            }
+            if let change = self.memosRender.changed(to: self.store.state.memos) {
+                self.applyMemos(from: change.old, to: change.new)
+            }
         }
     }
 

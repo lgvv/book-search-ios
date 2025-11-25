@@ -2,6 +2,7 @@ import UIKit
 
 import CommonUI
 import DesignSystem
+import FeatureSupport
 
 final class MemoEditViewController: UIViewController {
 
@@ -10,17 +11,27 @@ final class MemoEditViewController: UIViewController {
     private var didFillSavedText = false
     private var isViewVisible = false
 
+    private var observer: StateObserver?
+
+    private var stateRender = Rendered<MemoEditReducer.State>()
+    private var saveFailureRender = Rendered<Bool>()
+    private var loadFailureRender = Rendered<Bool>()
+
     private func observe() {
-        store.subscribe({ $0 }) { [weak self] _, state in
-            self?.updateMemo(state)
-        }
-        store.subscribe(\.hasSaveFailure) { [weak self] _, hasFailure in
-            guard hasFailure else { return }
-            self?.presentSaveFailureAlert()
-        }
-        store.subscribe(\.hasLoadFailure) { [weak self] _, hasFailure in
-            guard hasFailure else { return }
-            self?.presentLoadFailureAlert()
+        self.observer = StateObserver { [weak self] in
+            guard let self else { return }
+
+            if let change = self.stateRender.changed(to: self.store.state) {
+                self.updateMemo(change.new)
+            }
+            if let change = self.saveFailureRender.changed(to: self.store.state.hasSaveFailure),
+               change.new {
+                self.presentSaveFailureAlert()
+            }
+            if let change = self.loadFailureRender.changed(to: self.store.state.hasLoadFailure),
+               change.new {
+                self.presentLoadFailureAlert()
+            }
         }
     }
 
