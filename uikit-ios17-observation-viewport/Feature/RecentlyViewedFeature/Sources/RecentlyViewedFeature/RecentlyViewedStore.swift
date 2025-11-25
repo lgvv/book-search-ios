@@ -9,30 +9,20 @@ import RecentlyViewedCore
 import RecentlyViewedFeatureInterface
 
 @MainActor
+@Observable
 final class RecentlyViewedStore {
-    var onDelegate: ((RecentlyViewedDelegateAction) -> Void)?
+    @ObservationIgnored var onDelegate: ((RecentlyViewedDelegateAction) -> Void)?
 
-    private(set) var state = RecentlyViewedReducer.State() {
-        didSet { subscriptions.notify(from: oldValue, to: state) }
-    }
-
-    private let subscriptions = StateSubscriptions<RecentlyViewedReducer.State>()
-
-    func subscribe<Value: Equatable>(
-        _ scope: @escaping (RecentlyViewedReducer.State) -> Value,
-        render: @escaping (_ old: Value?, _ new: Value) -> Void
-    ) {
-        subscriptions.add(scope: scope, current: state, render: render)
-    }
+    private(set) var state = RecentlyViewedReducer.State()
 
     private let reducer = RecentlyViewedReducer()
     private let tasks = TaskScope<RecentlyViewedReducer.CancelID>()
     private let nonCancellables = NonCancellableTaskQueue<RecentlyViewedReducer.CancelID>()
     private let queue = ActionQueue<RecentlyViewedReducer.Action>()
 
-    @Resolved(RecentlyViewedClientKey.self) private var recentlyViewedClient
-    @Resolved(FavoriteClientKey.self) private var favoriteClient
-    @Resolved(MemoClientKey.self) private var memoClient
+    @ObservationIgnored @Resolved(RecentlyViewedClientKey.self) private var recentlyViewedClient
+    @ObservationIgnored @Resolved(FavoriteClientKey.self) private var favoriteClient
+    @ObservationIgnored @Resolved(MemoClientKey.self) private var memoClient
 
     func send(_ action: RecentlyViewedReducer.Action.ViewAction) {
         dispatch(.view(action))

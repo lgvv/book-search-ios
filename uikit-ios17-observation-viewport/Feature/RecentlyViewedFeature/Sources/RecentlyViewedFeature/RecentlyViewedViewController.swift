@@ -19,19 +19,30 @@ final class RecentlyViewedViewController: UIViewController {
 
     private var dataSource: UICollectionViewDiffableDataSource<RecentlyViewedSection, String>?
 
+    private var observer: StateObserver?
+
+    private var favoriteISBNsRender = Rendered<Set<String>>()
+    private var memoISBNsRender = Rendered<Set<String>>()
+    private var itemsRender = Rendered<ResourceState<[ViewedBook]>>()
+    private var canClearRender = Rendered<Bool>()
+
     private func observe() {
-        store.subscribe(\.favoriteISBNs) { [weak self] old, new in
-            self?.applyBadges(from: old, to: new)
-        }
-        store.subscribe(\.memoISBNs) { [weak self] old, new in
-            self?.applyBadges(from: old, to: new)
-        }
-        store.subscribe(\.items) { [weak self] old, items in
-            self?.applyItems(from: old, to: items)
-        }
-        store.subscribe(\.canClear) { [weak self] _, canClear in
-            self?.clearButton.isEnabled = canClear
-            self?.navigationItem.rightBarButtonItem = canClear ? self?.clearButton : nil
+        self.observer = StateObserver { [weak self] in
+            guard let self else { return }
+
+            if let change = self.favoriteISBNsRender.changed(to: self.store.state.favoriteISBNs) {
+                self.applyBadges(from: change.old, to: change.new)
+            }
+            if let change = self.memoISBNsRender.changed(to: self.store.state.memoISBNs) {
+                self.applyBadges(from: change.old, to: change.new)
+            }
+            if let change = self.itemsRender.changed(to: self.store.state.items) {
+                self.applyItems(from: change.old, to: change.new)
+            }
+            if let change = self.canClearRender.changed(to: self.store.state.canClear) {
+                self.clearButton.isEnabled = change.new
+                self.navigationItem.rightBarButtonItem = change.new ? self.clearButton : nil
+            }
         }
     }
 
