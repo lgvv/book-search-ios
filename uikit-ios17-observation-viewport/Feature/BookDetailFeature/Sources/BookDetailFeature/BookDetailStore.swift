@@ -9,30 +9,20 @@ import RecentlyViewedCore
 import FeatureSupport
 
 @MainActor
+@Observable
 final class BookDetailStore {
-    var onDelegate: ((BookDetailDelegateAction) -> Void)?
+    @ObservationIgnored var onDelegate: ((BookDetailDelegateAction) -> Void)?
 
-    private(set) var state: BookDetailReducer.State {
-        didSet { subscriptions.notify(from: oldValue, to: state) }
-    }
-
-    private let subscriptions = StateSubscriptions<BookDetailReducer.State>()
-
-    func subscribe<Value: Equatable>(
-        _ scope: @escaping (BookDetailReducer.State) -> Value,
-        render: @escaping (_ old: Value?, _ new: Value) -> Void
-    ) {
-        subscriptions.add(scope: scope, current: state, render: render)
-    }
+    private(set) var state: BookDetailReducer.State
 
     private let reducer = BookDetailReducer()
     private let tasks = TaskScope<BookDetailReducer.CancelID>()
     private let nonCancellables = NonCancellableTaskQueue<BookDetailReducer.CancelID>()
     private let queue = ActionQueue<BookDetailReducer.Action>()
 
-    @Resolved(FavoriteClientKey.self) private var favoriteClient
-    @Resolved(MemoClientKey.self) private var memoClient
-    @Resolved(RecentlyViewedClientKey.self) private var recentlyViewedClient
+    @ObservationIgnored @Resolved(FavoriteClientKey.self) private var favoriteClient
+    @ObservationIgnored @Resolved(MemoClientKey.self) private var memoClient
+    @ObservationIgnored @Resolved(RecentlyViewedClientKey.self) private var recentlyViewedClient
 
     init(payload: BookDetailPayload) {
         state = .init(

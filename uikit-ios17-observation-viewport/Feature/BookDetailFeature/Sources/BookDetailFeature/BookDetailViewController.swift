@@ -2,18 +2,21 @@ import UIKit
 
 import BookModel
 import DesignSystem
+import FeatureSupport
 import ImageUI
 
 final class BookDetailViewController: UIViewController {
 
     private let store: BookDetailStore
 
+    private var observer: StateObserver?
+
     private func observe() {
-        store.subscribe(\.isFavorite) { [weak self] _, isFavorite in
-            self?.updateFavoriteButton(isFavorite)
-        }
-        store.subscribe(\.memoText) { [weak self] _, memoText in
-            self?.updateMemo(memoText)
+        self.observer = StateObserver { [weak self] in
+            guard let self else { return }
+
+            self.updateFavoriteButton(self.store.state.isFavorite)
+            self.updateMemo(self.store.state.memoText)
         }
     }
 
