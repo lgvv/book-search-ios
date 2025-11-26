@@ -30,35 +30,57 @@ public final class BookListCell: UICollectionViewCell {
         captionLabel.text = caption
         captionLabel.isHidden = caption == nil
 
-        self.configureAccessibility(book: book, isFavorite: isFavorite, hasMemo: hasMemo, caption: caption)
+        self.content = Content(book: book, isFavorite: isFavorite, hasMemo: hasMemo, caption: caption)
     }
 
-    private func configureAccessibility(book: Book, isFavorite: Bool, hasMemo: Bool, caption: String?) {
-        contentView.isAccessibilityElement = true
-        contentView.accessibilityTraits.insert(.button)
+    private struct Content {
+        let book: Book
+        let isFavorite: Bool
+        let hasMemo: Bool
+        let caption: String?
+    }
 
-        let details = [book.author, book.publisher, caption]
+    private var content: Content?
+
+    private func configureAccessibility() {
+        contentView.isAccessibilityElementBlock = { true }
+        contentView.accessibilityTraitsBlock = { .button }
+
+        contentView.accessibilityLabelBlock = { [weak self] in
+            self?.accessibilityStatement
+        }
+
+        contentView.accessibilityCustomActionsBlock = { [weak self] in
+            guard let self, let content = self.content else { return nil }
+
+            let title = content.isFavorite ? "즐겨찾기 해제" : "즐겨찾기 추가"
+            return [
+                UIAccessibilityCustomAction(name: title) { [weak self] _ in
+                    self?.onToggleFavorite?()
+                    return true
+                }
+            ]
+        }
+    }
+
+    private var accessibilityStatement: String? {
+        guard let content = self.content else { return nil }
+
+        let details = [content.book.author, content.book.publisher, content.caption]
             .compactMap { $0 }
             .filter { !$0.isEmpty }
         let states = [
-            isFavorite ? "즐겨찾기됨" : nil,
-            hasMemo ? "메모 있음" : nil
+            content.isFavorite ? "즐겨찾기됨" : nil,
+            content.hasMemo ? "메모 있음" : nil
         ].compactMap { $0 }
 
-        contentView.accessibilityLabel = ([book.title] + details + states).joined(separator: ", ")
-
-        let toggleTitle = isFavorite ? "즐겨찾기 해제" : "즐겨찾기 추가"
-        contentView.accessibilityCustomActions = [
-            UIAccessibilityCustomAction(name: toggleTitle) { [weak self] _ in
-                self?.onToggleFavorite?()
-                return true
-            }
-        ]
+        return ([content.book.title] + details + states).joined(separator: ", ")
     }
 
     override public init(frame: CGRect) {
         super.init(frame: frame)
         configureUI()
+        configureAccessibility()
     }
 
     @available(*, unavailable)
@@ -72,7 +94,7 @@ public final class BookListCell: UICollectionViewCell {
         imageView.clipsToBounds = true
         imageView.layer.cornerRadius = 6
         imageView.backgroundColor = .dsSurface
-        imageView.isAccessibilityElement = false
+        imageView.isAccessibilityElementBlock = { false }
         return imageView
     }()
 
@@ -109,7 +131,7 @@ public final class BookListCell: UICollectionViewCell {
         imageView.tintColor = .dsSubtleInk
         imageView.contentMode = .scaleAspectFit
         imageView.isUserInteractionEnabled = false
-        imageView.isAccessibilityElement = false
+        imageView.isAccessibilityElementBlock = { false }
         imageView.setContentHuggingPriority(.required, for: .horizontal)
         imageView.isHidden = true
         return imageView
