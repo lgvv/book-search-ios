@@ -145,13 +145,9 @@ final class RecentlyViewedViewController: UIViewController {
 extension RecentlyViewedViewController {
     private func createLayout() -> UICollectionViewCompositionalLayout {
         let layout = UICollectionViewCompositionalLayout { [weak self] _, environment in
-            var configuration = UICollectionLayoutListConfiguration(appearance: .plain)
-            configuration.showsSeparators = false
-            configuration.backgroundColor = .dsBackground
-            configuration.trailingSwipeActionsConfigurationProvider = { [weak self] indexPath in
+            BookListLayout.section(environment: environment) { [weak self] indexPath in
                 self?.removeSwipeActions(at: indexPath)
             }
-            return NSCollectionLayoutSection.list(using: configuration, layoutEnvironment: environment)
         }
         return layout
     }
