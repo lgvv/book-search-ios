@@ -169,15 +169,12 @@ final class SearchViewController: UIViewController {
 extension SearchViewController {
     private func createLayout() -> UICollectionViewCompositionalLayout {
         let layout = UICollectionViewCompositionalLayout { [weak self] _, environment in
-            var configuration = UICollectionLayoutListConfiguration(appearance: .plain)
-            configuration.showsSeparators = false
-            configuration.backgroundColor = .dsBackground
-            if self?.store.state.isShowingRecents == true {
-                configuration.trailingSwipeActionsConfigurationProvider = { [weak self] indexPath in
+            guard self?.store.state.isShowingRecents != true else {
+                return BookListLayout.listSection(environment: environment) { [weak self] indexPath in
                     self?.recentTermSwipeActions(at: indexPath)
                 }
             }
-            return NSCollectionLayoutSection.list(using: configuration, layoutEnvironment: environment)
+            return BookListLayout.section(environment: environment)
         }
         return layout
     }
