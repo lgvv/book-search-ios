@@ -18,8 +18,6 @@ public final class PagingFooterCell: UICollectionViewCell {
             self.spinner.isHidden = false
             self.messageLabel.isHidden = true
             self.retryButton.isHidden = true
-            self.spinner.isAccessibilityElement = true
-            self.spinner.accessibilityLabel = "결과를 더 불러오는 중"
         case .failed:
             self.spinner.stopAnimating()
             self.spinner.isHidden = true
@@ -32,6 +30,14 @@ public final class PagingFooterCell: UICollectionViewCell {
     override public init(frame: CGRect) {
         super.init(frame: frame)
         self.configureUI()
+        self.configureAccessibility()
+    }
+
+    private func configureAccessibility() {
+        self.spinner.isAccessibilityElementBlock = { [weak self] in
+            self?.spinner.isHidden == false
+        }
+        self.spinner.accessibilityLabelBlock = { "결과를 더 불러오는 중" }
     }
 
     @available(*, unavailable)
