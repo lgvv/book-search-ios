@@ -147,17 +147,25 @@ public final class BookListCell: UICollectionViewCell {
     }()
 
     private func configureUI() {
+        contentView.directionalLayoutMargins = NSDirectionalEdgeInsets(
+            top: 10,
+            leading: DSSpacing.l,
+            bottom: 10,
+            trailing: DSSpacing.l
+        )
+        let margins = contentView.layoutMarginsGuide
+
         contentView.addSubview(contentStack)
         contentStack.translatesAutoresizingMaskIntoConstraints = false
 
-        let bottom = contentStack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -10)
+        let bottom = contentStack.bottomAnchor.constraint(equalTo: margins.bottomAnchor)
         bottom.priority = UILayoutPriority(999)
 
         NSLayoutConstraint.activate([
-            contentStack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
+            contentStack.topAnchor.constraint(equalTo: margins.topAnchor),
             bottom,
-            contentStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            contentStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            contentStack.leadingAnchor.constraint(equalTo: margins.leadingAnchor),
+            contentStack.trailingAnchor.constraint(equalTo: margins.trailingAnchor),
         ])
 
         contentView.addSubview(separator)
@@ -165,7 +173,7 @@ public final class BookListCell: UICollectionViewCell {
         NSLayoutConstraint.activate([
             separator.heightAnchor.constraint(equalToConstant: 0.5),
             separator.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            separator.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            separator.leadingAnchor.constraint(equalTo: margins.leadingAnchor),
             separator.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
         ])
 
