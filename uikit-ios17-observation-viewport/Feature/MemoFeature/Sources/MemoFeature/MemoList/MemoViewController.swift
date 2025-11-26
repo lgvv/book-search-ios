@@ -117,10 +117,7 @@ final class MemoViewController: UIViewController {
 extension MemoViewController {
     private func createLayout() -> UICollectionViewCompositionalLayout {
         let layout = UICollectionViewCompositionalLayout { _, environment in
-            var configuration = UICollectionLayoutListConfiguration(appearance: .plain)
-            configuration.showsSeparators = false
-            configuration.backgroundColor = .dsBackground
-            return NSCollectionLayoutSection.list(using: configuration, layoutEnvironment: environment)
+            BookListLayout.section(environment: environment)
         }
         return layout
     }
