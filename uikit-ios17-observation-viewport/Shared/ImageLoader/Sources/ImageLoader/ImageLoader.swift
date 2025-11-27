@@ -16,7 +16,7 @@ struct ImageLoaderCore: Sendable {
         let decodeGate = ConcurrencyGate.forCPUBoundWork()
         let decode = engine.decode
         let gatedDecode: @Sendable (Data, CGSize?) async -> UIImage? = { data, pixelSize in
-            await decodeGate.withPermit { await decode(data, pixelSize) }
+            (try? await decodeGate.withPermit { await decode(data, pixelSize) }) ?? nil
         }
 
         self.pipeline = ImageLoadPipeline(
