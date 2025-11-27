@@ -33,6 +33,7 @@ final class BookDetailViewController: UIViewController {
         super.viewDidLoad()
 
         configureUI()
+        configureAccessibility()
         configureContent()
 
         observe()
@@ -55,7 +56,6 @@ final class BookDetailViewController: UIViewController {
         let label = UILabel()
         label.font = DSTypography.largeTitle()
         label.adjustsFontForContentSizeCategory = true
-        label.accessibilityTraits.insert(.header)
         label.textColor = .dsInk
         label.numberOfLines = 0
         label.textAlignment = .center
@@ -77,7 +77,6 @@ final class BookDetailViewController: UIViewController {
         label.text = "메모"
         label.font = DSTypography.heading()
         label.adjustsFontForContentSizeCategory = true
-        label.accessibilityTraits.insert(.header)
         label.textColor = .dsInk
         return label
     }()
@@ -126,7 +125,6 @@ final class BookDetailViewController: UIViewController {
             }
         )
         button.tintColor = .dsFavorite
-        button.accessibilityLabel = "즐겨찾기"
         return button
     }()
 
@@ -168,6 +166,17 @@ final class BookDetailViewController: UIViewController {
 }
 
 extension BookDetailViewController {
+    private func configureAccessibility() {
+        titleLabel.accessibilityTraitsBlock = { [.staticText, .header] }
+        memoTitleLabel.accessibilityTraitsBlock = { [.staticText, .header] }
+
+        favoriteBarButton.accessibilityLabelBlock = { "즐겨찾기" }
+
+        favoriteBarButton.accessibilityValueBlock = { [weak self] in
+            self?.store.state.isFavorite == true ? "설정됨" : "해제됨"
+        }
+    }
+
     private func configureContent() {
         let book = store.state.book
         coverImageView.setImage(from: book.coverImageURL, targetSize: Self.coverSize)
@@ -187,7 +196,6 @@ extension BookDetailViewController {
         favoriteBarButton.image = UIImage(
             systemName: isFavorite ? "heart.fill" : "heart"
         )
-        favoriteBarButton.accessibilityValue = isFavorite ? "설정됨" : "해제됨"
     }
 
     private func updateMemo(_ memoText: String) {
