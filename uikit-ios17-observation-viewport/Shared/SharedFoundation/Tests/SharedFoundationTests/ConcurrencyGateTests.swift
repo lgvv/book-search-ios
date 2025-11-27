@@ -17,7 +17,7 @@ struct ConcurrencyGateTests {
         await withTaskGroup(of: Void.self) { group in
             for _ in 0 ..< 50 {
                 group.addTask {
-                    await sut.withPermit {
+                    try? await sut.withPermit {
                         inFlight.withValue { count in
                             count += 1
                             peak.withValue { $0 = max($0, count) }
@@ -34,10 +34,10 @@ struct ConcurrencyGateTests {
     }
 
     @Test
-    func 상한에0이하를주면_최소1로올린다() async {
+    func 상한에0이하를주면_최소1로올린다() async throws {
         let sut = ConcurrencyGate(capacity: 0)
 
-        let result = await sut.withPermit { "통과" }
+        let result = try await sut.withPermit { "통과" }
 
         #expect(result == "통과")
     }
@@ -47,15 +47,12 @@ struct ConcurrencyGateTests {
         let sut = ConcurrencyGate(capacity: 1)
         struct Boom: Error {}
 
-        do {
+        await #expect(throws: Boom.self) {
             try await sut.withPermit { throw Boom() }
-            Issue.record("작업이 던져야 한다")
-        } catch {
-            #expect(error is Boom)
         }
 
         let didPass = await waitUntil {
-            await sut.withPermit { true }
+            (try? await sut.withPermit { true }) ?? false
         }
         #expect(didPass)
     }
@@ -66,10 +63,10 @@ struct ConcurrencyGateTests {
         let holder = Gate()
         let didEnterSecond = Locked(false)
 
-        let first = Task { await sut.withPermit { await holder.wait() } }
+        let first = Task { try? await sut.withPermit { await holder.wait() } }
         await holder.waitUntilArrived()
 
-        let second = Task { await sut.withPermit { didEnterSecond.withValue { $0 = true } } }
+        let second = Task { try? await sut.withPermit { didEnterSecond.withValue { $0 = true } } }
 
         let stayedOut = await stayFalse { didEnterSecond.value }
         #expect(stayedOut)
@@ -88,7 +85,7 @@ struct ConcurrencyGateTests {
         await withTaskGroup(of: Void.self) { group in
             for _ in 0 ..< 30 {
                 group.addTask {
-                    await sut.withPermit {
+                    try? await sut.withPermit {
                         await Task.yield()
                         completed.withValue { $0 += 1 }
                     }
@@ -108,7 +105,7 @@ struct ConcurrencyGateTests {
         await withTaskGroup(of: Void.self) { group in
             for _ in 0 ..< 40 {
                 group.addTask {
-                    await sut.withPermit {
+                    try? await sut.withPermit {
                         inFlight.withValue { count in
                             count += 1
                             peak.withValue { $0 = max($0, count) }
