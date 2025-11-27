@@ -60,9 +60,9 @@ public final class LoadingOverlay {
         let container = UIView()
         container.translatesAutoresizingMaskIntoConstraints = false
         container.backgroundColor = UIColor.dsBackground.withAlphaComponent(0.6)
-        container.accessibilityViewIsModal = true
-        container.isAccessibilityElement = true
-        container.accessibilityLabel = "불러오는 중"
+        container.accessibilityViewIsModalBlock = { true }
+        container.isAccessibilityElementBlock = { true }
+        container.accessibilityLabelBlock = { "불러오는 중" }
 
         let indicator = UIActivityIndicatorView(style: .large)
         indicator.translatesAutoresizingMaskIntoConstraints = false
