@@ -104,7 +104,7 @@ final class SearchViewController: UIViewController {
     private lazy var searchController: UISearchController = {
         let searchController = UISearchController(searchResultsController: nil)
         searchController.searchBar.placeholder = "책 제목 검색"
-        searchController.searchBar.accessibilityLabel = "책 제목 검색"
+        searchController.searchBar.accessibilityLabelBlock = { "책 제목 검색" }
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.searchBar.delegate = self
         return searchController
@@ -199,12 +199,14 @@ extension SearchViewController {
             content.imageProperties.tintColor = .secondaryLabel
             cell.contentConfiguration = content
 
-            cell.accessibilityCustomActions = [
-                UIAccessibilityCustomAction(name: "삭제") { [weak self] _ in
-                    self?.store.send(.removeRecentTerm(term))
-                    return true
-                }
-            ]
+            cell.accessibilityCustomActionsBlock = { [weak self] in
+                [
+                    UIAccessibilityCustomAction(name: "삭제") { [weak self] _ in
+                        self?.store.send(.removeRecentTerm(term))
+                        return true
+                    }
+                ]
+            }
         }
         let footerRegistration = UICollectionView.CellRegistration<PagingFooterCell, PagingFooterCell.Mode> {
             [weak self] cell, _, mode in
