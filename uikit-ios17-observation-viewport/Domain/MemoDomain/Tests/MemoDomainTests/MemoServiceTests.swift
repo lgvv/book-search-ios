@@ -36,7 +36,8 @@ struct MemoServiceTests {
 
         await self.sut.start()
 
-        #expect(recorder.last?.value == [memo])
+        let didLoad = await waitUntil { recorder.last?.value == [memo] }
+        #expect(didLoad)
     }
 
     @Test
@@ -46,7 +47,8 @@ struct MemoServiceTests {
 
         await self.sut.start()
 
-        #expect(recorder.last == .failed)
+        let didFail = await waitUntil { recorder.last == .failed }
+        #expect(didFail)
     }
 
     @Test
@@ -226,7 +228,8 @@ struct MemoServiceTests {
         await self.sut.reload()
 
         let recorder = AsyncValueRecorder(self.sut.observe())
-        #expect(recorder.last?.value == [])
+        let values = try? await recorder.wait(untilCount: 1)
+        #expect(values?.last?.value == [])
     }
 
     @Test
@@ -238,6 +241,7 @@ struct MemoServiceTests {
         await self.sut.reload()
 
         let recorder = AsyncValueRecorder(self.sut.observe())
-        #expect(recorder.last?.value == [memo])
+        let values = try? await recorder.wait(untilCount: 1)
+        #expect(values?.last?.value == [memo])
     }
 }

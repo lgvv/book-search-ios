@@ -1,4 +1,3 @@
-import Combine
 import Foundation
 
 import BookModel
@@ -13,13 +12,13 @@ public protocol MemoRepository: Sendable {
 
 final class DefaultMemoService: Sendable {
     private let repository: any MemoRepository
-    private let subject: LockIsolated<CurrentValueSubject<ResourceState<[BookMemo]>, Never>>
+    private let cache: AsyncValueChannel<ResourceState<[BookMemo]>>
     private let publishQueue = SerialTaskQueue()
     private let writeQueue = KeyedSerialQueue<String>()
 
     init(repository: any MemoRepository) {
         self.repository = repository
-        self.subject = LockIsolated(CurrentValueSubject<ResourceState<[BookMemo]>, Never>(.loading))
+        self.cache = AsyncValueChannel<ResourceState<[BookMemo]>>(.loading)
     }
 
     func start() async {
@@ -62,10 +61,8 @@ final class DefaultMemoService: Sendable {
         return .found(memo)
     }
 
-    func observe() -> AnyPublisher<ResourceState<[BookMemo]>, Never> {
-        subject.value
-            .buffer(size: 64, prefetch: .keepFull, whenFull: .dropOldest)
-            .eraseToAnyPublisher()
+    func observe() -> AsyncStream<ResourceState<[BookMemo]>> {
+        cache.stream()
     }
 
     func reload() async {
@@ -77,46 +74,46 @@ final class DefaultMemoService: Sendable {
     }
 
     private var loadedMemos: [BookMemo]? {
-        subject.value.value.value
+        cache.value.value
     }
 
     private func loadIfNeeded() async throws {
         guard loadedMemos == nil else { return }
-        try await publishQueue.enqueue { [repository, subject] in
-            guard subject.value.value.value == nil else { return }
-            subject.value.send(.loading)
+        try await publishQueue.enqueue { [repository, cache] in
+            guard cache.value.value == nil else { return }
+            cache.send(.loading)
             do {
                 let memos = try await repository.list()
-                subject.value.send(.loaded(memos))
+                cache.send(.loaded(memos))
             } catch {
-                subject.value.send(.failed)
+                cache.send(.failed)
                 throw error
             }
         }.value
     }
 
     private func apply(isbn: String, memo: BookMemo?) async {
-        try? await publishQueue.enqueue { [subject] in
-            guard let current = subject.value.value.value else { return }
+        try? await publishQueue.enqueue { [cache] in
+            guard let current = cache.value.value else { return }
             var memos = current.filter { $0.book.isbn != isbn }
             if let memo {
                 memos.append(memo)
                 memos.sort { $0.updatedAt > $1.updatedAt }
             }
-            subject.value.send(.loaded(memos, isStale: subject.value.value.isStale))
+            cache.send(.loaded(memos, isStale: cache.value.isStale))
         }.value
     }
 
     private func refresh() async {
-        try? await publishQueue.enqueue { [repository, subject] in
+        try? await publishQueue.enqueue { [repository, cache] in
             do {
                 let memos = try await repository.list()
-                subject.value.send(.loaded(memos))
+                cache.send(.loaded(memos))
             } catch {
-                if let previous = subject.value.value.value {
-                    subject.value.send(.loaded(previous, isStale: true))
+                if let previous = cache.value.value {
+                    cache.send(.loaded(previous, isStale: true))
                 } else {
-                    subject.value.send(.failed)
+                    cache.send(.failed)
                 }
             }
         }.value

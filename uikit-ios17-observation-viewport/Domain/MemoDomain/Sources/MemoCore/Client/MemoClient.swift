@@ -1,4 +1,3 @@
-import Combine
 import Foundation
 
 import BookModel
@@ -10,7 +9,7 @@ public struct MemoClient: Sendable {
     public var save: @Sendable (Book, _ text: String) async throws -> Void
     public var list: @Sendable () async -> [BookMemo]
     public var memo: @Sendable (_ isbn: String) async throws -> MemoLookup
-    public var observe: @Sendable () -> AnyPublisher<ResourceState<[BookMemo]>, Never>
+    public var observe: @Sendable () -> AsyncStream<ResourceState<[BookMemo]>>
     public var reload: @Sendable () async -> Void
     public var start: @Sendable () async -> Void
 
@@ -18,7 +17,7 @@ public struct MemoClient: Sendable {
         save: @escaping @Sendable (Book, _ text: String) async throws -> Void,
         list: @escaping @Sendable () async -> [BookMemo],
         memo: @escaping @Sendable (_ isbn: String) async throws -> MemoLookup,
-        observe: @escaping @Sendable () -> AnyPublisher<ResourceState<[BookMemo]>, Never>,
+        observe: @escaping @Sendable () -> AsyncStream<ResourceState<[BookMemo]>>,
         reload: @escaping @Sendable () async -> Void,
         start: @escaping @Sendable () async -> Void
     ) {
