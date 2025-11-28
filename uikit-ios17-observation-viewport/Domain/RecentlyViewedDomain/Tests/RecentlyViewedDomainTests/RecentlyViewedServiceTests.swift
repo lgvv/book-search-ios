@@ -36,7 +36,8 @@ struct RecentlyViewedServiceTests {
 
         await self.sut.start()
 
-        #expect(recorder.last?.value == [viewed])
+        let didLoad = await waitUntil { recorder.last?.value == [viewed] }
+        #expect(didLoad)
     }
 
     @Test
@@ -46,7 +47,8 @@ struct RecentlyViewedServiceTests {
 
         await self.sut.start()
 
-        #expect(recorder.last == .failed)
+        let didFail = await waitUntil { recorder.last == .failed }
+        #expect(didFail)
     }
 
     @Test

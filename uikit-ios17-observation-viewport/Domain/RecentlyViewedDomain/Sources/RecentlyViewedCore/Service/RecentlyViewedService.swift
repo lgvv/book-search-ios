@@ -1,4 +1,3 @@
-import Combine
 import Foundation
 
 import BookModel
@@ -16,7 +15,7 @@ final class DefaultRecentlyViewedService: Sendable {
     private let repository: any RecentlyViewedRepository
     private let maxCount: Int
 
-    private let subject: LockIsolated<CurrentValueSubject<ResourceState<[ViewedBook]>, Never>>
+    private let cache: AsyncValueChannel<ResourceState<[ViewedBook]>>
 
     private let publishQueue = SerialTaskQueue()
 
@@ -25,7 +24,7 @@ final class DefaultRecentlyViewedService: Sendable {
     init(repository: any RecentlyViewedRepository, maxCount: Int) {
         self.repository = repository
         self.maxCount = maxCount
-        self.subject = LockIsolated(CurrentValueSubject<ResourceState<[ViewedBook]>, Never>(.loading))
+        self.cache = AsyncValueChannel<ResourceState<[ViewedBook]>>(.loading)
     }
 
     func start() async {
@@ -67,13 +66,11 @@ final class DefaultRecentlyViewedService: Sendable {
     }
 
     func list() async -> [ViewedBook] {
-        self.subject.value.value.value ?? []
+        self.cache.value.value ?? []
     }
 
-    func observe() -> AnyPublisher<ResourceState<[ViewedBook]>, Never> {
-        self.subject.value
-            .buffer(size: 64, prefetch: .keepFull, whenFull: .dropOldest)
-            .eraseToAnyPublisher()
+    func observe() -> AsyncStream<ResourceState<[ViewedBook]>> {
+        self.cache.stream()
     }
 
     func reload() async {
@@ -91,25 +88,25 @@ final class DefaultRecentlyViewedService: Sendable {
     private func apply(
         _ transform: @escaping @Sendable ([ViewedBook]) -> [ViewedBook]
     ) async {
-        try? await self.publishQueue.enqueue { [subject] in
-            guard let current = subject.value.value.value else { return }
-            subject.value.send(.loaded(transform(current), isStale: subject.value.value.isStale))
+        try? await self.publishQueue.enqueue { [cache] in
+            guard let current = cache.value.value else { return }
+            cache.send(.loaded(transform(current), isStale: cache.value.isStale))
         }.value
     }
 
     private func refresh() async {
-        try? await self.publishQueue.enqueue { [repository, subject] in
-            if subject.value.value.value == nil {
-                subject.value.send(.loading)
+        try? await self.publishQueue.enqueue { [repository, cache] in
+            if cache.value.value == nil {
+                cache.send(.loading)
             }
             do {
                 let items = try await repository.list()
-                subject.value.send(.loaded(items))
+                cache.send(.loaded(items))
             } catch {
-                if let previous = subject.value.value.value {
-                    subject.value.send(.loaded(previous, isStale: true))
+                if let previous = cache.value.value {
+                    cache.send(.loaded(previous, isStale: true))
                 } else {
-                    subject.value.send(.failed)
+                    cache.send(.failed)
                 }
             }
         }.value

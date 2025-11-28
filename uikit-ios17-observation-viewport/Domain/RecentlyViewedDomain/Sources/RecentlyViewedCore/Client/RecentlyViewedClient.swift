@@ -1,4 +1,3 @@
-import Combine
 import Foundation
 
 import BookModel
@@ -11,7 +10,7 @@ public struct RecentlyViewedClient: Sendable {
     public var list: @Sendable () async -> [ViewedBook]
     public var remove: @Sendable (_ isbn: String) async -> Void
     public var clear: @Sendable () async -> Void
-    public var observe: @Sendable () -> AnyPublisher<ResourceState<[ViewedBook]>, Never>
+    public var observe: @Sendable () -> AsyncStream<ResourceState<[ViewedBook]>>
     public var reload: @Sendable () async -> Void
     public var start: @Sendable () async -> Void
 
@@ -20,7 +19,7 @@ public struct RecentlyViewedClient: Sendable {
         list: @escaping @Sendable () async -> [ViewedBook],
         remove: @escaping @Sendable (_ isbn: String) async -> Void,
         clear: @escaping @Sendable () async -> Void,
-        observe: @escaping @Sendable () -> AnyPublisher<ResourceState<[ViewedBook]>, Never>,
+        observe: @escaping @Sendable () -> AsyncStream<ResourceState<[ViewedBook]>>,
         reload: @escaping @Sendable () async -> Void,
         start: @escaping @Sendable () async -> Void
     ) {
