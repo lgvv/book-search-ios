@@ -97,6 +97,71 @@ struct ConcurrencyGateTests {
     }
 
     @Test
+    func 대기중에취소되면_permit을받지않고끝난다() async {
+        let sut = ConcurrencyGate(capacity: 1)
+        let holder = Gate()
+        let first = Task { try? await sut.withPermit { await holder.wait() } }
+        await holder.waitUntilArrived()
+
+        let didRun = Locked(false)
+        let waiting = Task {
+            try await sut.withPermit { didRun.withValue { $0 = true } }
+        }
+        let didEnqueue = await waitUntil { sut.waiterCountForTesting == 1 }
+        #expect(didEnqueue)
+
+        waiting.cancel()
+
+        await #expect(throws: CancellationError.self) { try await waiting.value }
+        #expect(!(didRun.value))
+
+        holder.open()
+        await first.value
+    }
+
+    @Test
+    func 취소된waiter가있어도_남은대기자는permit을받는다() async {
+        let sut = ConcurrencyGate(capacity: 1)
+        let holder = Gate()
+        let first = Task { try? await sut.withPermit { await holder.wait() } }
+        await holder.waitUntilArrived()
+
+        let cancelled = Task { try await sut.withPermit {} }
+        let didEnqueue = await waitUntil { sut.waiterCountForTesting == 1 }
+        #expect(didEnqueue)
+        cancelled.cancel()
+        _ = try? await cancelled.value
+
+        holder.open()
+        await first.value
+
+        let didPass = await waitUntil {
+            (try? await sut.withPermit { true }) ?? false
+        }
+        #expect(didPass)
+    }
+
+    @Test
+    func 이미취소된태스크는_대기열에들어가지않고곧바로끝난다() async {
+        let sut = ConcurrencyGate(capacity: 1)
+        let task = Task { () -> Bool in
+            while !Task.isCancelled { await Task.yield() }
+            do {
+                try await sut.withPermit {}
+                return false
+            } catch {
+                return true
+            }
+        }
+
+        task.cancel()
+
+        let didThrow = await task.value
+        #expect(didThrow)
+        #expect(sut.waiterCountForTesting == 0)
+    }
+
+    @Test
     func CPU작업용기본게이트는_상한이2에서4사이다() async {
         let sut = ConcurrencyGate.forCPUBoundWork()
         let peak = Locked(0)
