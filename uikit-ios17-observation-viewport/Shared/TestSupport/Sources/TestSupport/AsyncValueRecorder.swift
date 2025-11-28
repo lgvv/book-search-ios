@@ -22,6 +22,7 @@ public final class AsyncValueRecorder<Output: Sendable>: Sendable {
         var values: [Output] = []
         var observers: [UUID: Observer] = [:]
         var cancellable: AnyCancellable?
+        var consumption: Task<Void, Never>?
     }
 
     private let state = Locked(State())
@@ -31,6 +32,19 @@ public final class AsyncValueRecorder<Output: Sendable>: Sendable {
             self?.receive(value)
         }
         self.state.withValue { $0.cancellable = cancellable }
+    }
+
+    public init(_ stream: AsyncStream<Output>) {
+        let consumption = Task { [weak self] in
+            for await value in stream {
+                self?.receive(value)
+            }
+        }
+        self.state.withValue { $0.consumption = consumption }
+    }
+
+    deinit {
+        self.state.withValue { $0.consumption?.cancel() }
     }
 
     public var values: [Output] {
