@@ -52,7 +52,7 @@ final class BookDetailStore {
 
         case let .observeFavorites(isbn):
             tasks.run(.observeFavorites) { [weak self, favoriteClient] in
-                for await favorites in favoriteClient.observe().values {
+                for await favorites in favoriteClient.observe() {
                     guard let self else { return }
                     guard let books = favorites.value else { continue }
                     let isFavorite = books.contains { $0.isbn == isbn }
@@ -76,7 +76,7 @@ final class BookDetailStore {
 
         case let .observeMemo(isbn):
             tasks.run(.observeMemo) { [weak self, memoClient] in
-                for await memoState in memoClient.observe().values {
+                for await memoState in memoClient.observe() {
                     guard let self else { return }
                     guard let memos = memoState.value else { continue }
                     let text = memos.first { $0.book.isbn == isbn }?.text ?? ""

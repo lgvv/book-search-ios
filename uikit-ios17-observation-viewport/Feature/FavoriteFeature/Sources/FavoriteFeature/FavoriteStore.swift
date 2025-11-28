@@ -42,7 +42,7 @@ final class FavoriteStore {
 
         case .observeFavorites:
             tasks.run(.observeFavorites) { [weak self, favoriteClient] in
-                for await favorites in favoriteClient.observe().values {
+                for await favorites in favoriteClient.observe() {
                     guard let self else { return }
                     dispatch(.feedback(.favoritesChanged(favorites)))
                 }
@@ -60,7 +60,7 @@ final class FavoriteStore {
 
         case .observeMemos:
             tasks.run(.observeMemos) { [weak self, memoClient] in
-                for await memoState in memoClient.observe().values {
+                for await memoState in memoClient.observe() {
                     guard let self else { return }
                     guard let memos = memoState.value else { continue }
                     dispatch(.feedback(.memosChanged(Set(memos.map(\.book.isbn)))))

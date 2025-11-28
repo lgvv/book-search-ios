@@ -1,4 +1,3 @@
-import Combine
 import Foundation
 import Testing
 
@@ -26,8 +25,8 @@ struct SearchStoreTests {
         search: (@Sendable (String, Int) async throws -> SearchPage)? = nil
     ) -> (store: SearchStore, calls: CallRecorder) {
         let recorder = CallRecorder()
-        let favorites = Locked(CurrentValueSubject<ResourceState<[Book]>, Never>(.loaded([])))
-        let memos = Locked(CurrentValueSubject<ResourceState<[BookMemo]>, Never>(.loaded([])))
+        let favorites = AsyncValueChannel<ResourceState<[Book]>>(.loaded([]))
+        let memos = AsyncValueChannel<ResourceState<[BookMemo]>>(.loaded([]))
 
         let store = withResolver(from: .test) { values in
             values[BookSearchClientKey.self] = BookSearchClient(
@@ -48,8 +47,8 @@ struct SearchStoreTests {
                 submitRemove: { recorder.record("removeFavorite(\($0))") },
                 list: { [] },
                 isFavorite: { _ in false },
-                observe: { favorites.value.eraseToAnyPublisher() },
-                observeFailures: { Empty().eraseToAnyPublisher() },
+                observe: { favorites.stream() },
+                observeFailures: { AsyncStream { $0.finish() } },
                 reload: {},
                 start: {}
             )
@@ -57,7 +56,7 @@ struct SearchStoreTests {
                 save: { _, _ in },
                 list: { [] },
                 memo: { _ in .notFound },
-                observe: { memos.value.eraseToAnyPublisher() },
+                observe: { memos.stream() },
                 reload: {},
                 start: {}
             )
