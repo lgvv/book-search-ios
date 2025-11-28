@@ -149,7 +149,8 @@ struct FavoriteWriteCoalescerTests {
 
         let didRunBoth = await waitUntil { [repository] in repository?.writeCalls.count == 2 }
         #expect(didRunBoth)
-        #expect(failures.values == [])
+        let stayedSilent = await stayFalse({ !failures.values.isEmpty }, for: 0.1)
+        #expect(stayedSilent)
     }
 
     @Test

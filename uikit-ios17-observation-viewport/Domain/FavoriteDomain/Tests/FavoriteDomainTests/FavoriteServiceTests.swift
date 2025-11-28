@@ -34,7 +34,8 @@ struct FavoriteServiceTests {
 
         await self.sut.start()
 
-        #expect(recorder.last?.value == [pachinko])
+        let didLoad = await waitUntil { recorder.last?.value == [pachinko] }
+        #expect(didLoad)
         #expect(self.repository.listCallCount == 1)
     }
 
@@ -44,8 +45,8 @@ struct FavoriteServiceTests {
 
         let recorder = AsyncValueRecorder(self.sut.observe())
 
-        #expect(recorder.values.count == 1)
-        #expect(recorder.last?.value == [])
+        let values = try? await recorder.wait(untilCount: 1)
+        #expect(values == [.loaded([])])
     }
 
     @Test
@@ -118,7 +119,8 @@ struct FavoriteServiceTests {
 
         await self.sut.start()
 
-        #expect(recorder.last == .failed)
+        let didFail = await waitUntil { recorder.last == .failed }
+        #expect(didFail)
     }
 
     @Test
@@ -144,8 +146,9 @@ struct FavoriteServiceTests {
         await self.sut.reload()
 
         let recorder = AsyncValueRecorder(self.sut.observe())
-        #expect(recorder.last?.value == [pachinko])
-        #expect(recorder.last?.isStale == false)
+        let values = try? await recorder.wait(untilCount: 1)
+        #expect(values?.last?.value == [pachinko])
+        #expect(values?.last?.isStale == false)
     }
 
     @Test

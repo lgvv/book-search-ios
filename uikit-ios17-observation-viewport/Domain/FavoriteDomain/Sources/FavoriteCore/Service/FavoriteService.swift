@@ -1,4 +1,3 @@
-import Combine
 import Foundation
 
 import BookModel
@@ -104,27 +103,27 @@ private final class FavoriteWriteCoalescer: Sendable {
 }
 
 final class DefaultFavoriteService: Sendable {
-    private let subject: LockIsolated<CurrentValueSubject<ResourceState<[Book]>, Never>>
+    private let cache: AsyncValueChannel<ResourceState<[Book]>>
     private let coalescer: FavoriteWriteCoalescer
     private let refreshAction: @Sendable () async -> Void
-    private let failures: LockIsolated<PassthroughSubject<FavoriteWriteFailure, Never>>
+    private let failures: AsyncEventChannel<FavoriteWriteFailure>
 
     init(repository: any FavoriteRepository) {
-        let subject = LockIsolated(CurrentValueSubject<ResourceState<[Book]>, Never>(.loading))
+        let cache = AsyncValueChannel<ResourceState<[Book]>>(.loading)
         let publishQueue = SerialTaskQueue()
         let refresh: @Sendable () async -> Void = {
             try? await publishQueue.enqueue {
-                if subject.value.value.value == nil {
-                    subject.value.send(.loading)
+                if cache.value.value == nil {
+                    cache.send(.loading)
                 }
                 do {
                     let books = try await repository.list()
-                    subject.value.send(.loaded(books))
+                    cache.send(.loaded(books))
                 } catch {
-                    if let previous = subject.value.value.value {
-                        subject.value.send(.loaded(previous, isStale: true))
+                    if let previous = cache.value.value {
+                        cache.send(.loaded(previous, isStale: true))
                     } else {
-                        subject.value.send(.failed)
+                        cache.send(.failed)
                     }
                 }
             }.value
@@ -132,29 +131,29 @@ final class DefaultFavoriteService: Sendable {
 
         let apply: @Sendable (FavoriteWriteOutcome) async -> Void = { outcome in
             try? await publishQueue.enqueue {
-                guard let current = subject.value.value.value else { return }
+                guard let current = cache.value.value else { return }
                 var books = current.filter { $0.isbn != outcome.isbn }
                 if outcome.isFavorite, let book = outcome.book {
                     books.insert(book, at: 0)
                 }
-                subject.value.send(.loaded(books, isStale: subject.value.value.isStale))
+                cache.send(.loaded(books, isStale: cache.value.isStale))
             }.value
         }
 
-        let failures = LockIsolated(PassthroughSubject<FavoriteWriteFailure, Never>())
+        let failures = AsyncEventChannel<FavoriteWriteFailure>()
 
         let afterWrite: @Sendable (FavoriteWriteOutcome) async -> Void = { outcome in
             if outcome.didSucceed {
                 await apply(outcome)
             } else if !outcome.isSupersededByNewerIntent {
-                failures.value.send(
+                failures.send(
                     FavoriteWriteFailure(isbn: outcome.isbn, desiredIsFavorite: outcome.isFavorite)
                 )
             }
             await refresh()
         }
 
-        self.subject = subject
+        self.cache = cache
         self.failures = failures
         self.coalescer = FavoriteWriteCoalescer(repository: repository, afterWrite: afterWrite)
         self.refreshAction = refresh
@@ -173,21 +172,19 @@ final class DefaultFavoriteService: Sendable {
     }
 
     func list() async -> [Book] {
-        self.subject.value.value.value ?? []
+        self.cache.value.value ?? []
     }
 
     func isFavorite(_ isbn: String) async -> Bool {
-        (self.subject.value.value.value ?? []).contains { $0.isbn == isbn }
+        (self.cache.value.value ?? []).contains { $0.isbn == isbn }
     }
 
-    func observe() -> AnyPublisher<ResourceState<[Book]>, Never> {
-        self.subject.value
-            .buffer(size: 64, prefetch: .keepFull, whenFull: .dropOldest)
-            .eraseToAnyPublisher()
+    func observe() -> AsyncStream<ResourceState<[Book]>> {
+        self.cache.stream()
     }
 
-    func observeFailures() -> AnyPublisher<FavoriteWriteFailure, Never> {
-        self.failures.value.eraseToAnyPublisher()
+    func observeFailures() -> AsyncStream<FavoriteWriteFailure> {
+        self.failures.stream()
     }
 
     func reload() async {

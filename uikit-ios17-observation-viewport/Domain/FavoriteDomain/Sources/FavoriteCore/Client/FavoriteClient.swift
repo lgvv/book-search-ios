@@ -1,4 +1,3 @@
-import Combine
 import Foundation
 
 import BookModel
@@ -10,8 +9,8 @@ public struct FavoriteClient: Sendable {
     public var submitRemove: @Sendable (_ isbn: String) async -> Void
     public var list: @Sendable () async -> [Book]
     public var isFavorite: @Sendable (_ isbn: String) async -> Bool
-    public var observe: @Sendable () -> AnyPublisher<ResourceState<[Book]>, Never>
-    public var observeFailures: @Sendable () -> AnyPublisher<FavoriteWriteFailure, Never>
+    public var observe: @Sendable () -> AsyncStream<ResourceState<[Book]>>
+    public var observeFailures: @Sendable () -> AsyncStream<FavoriteWriteFailure>
     public var reload: @Sendable () async -> Void
     public var start: @Sendable () async -> Void
 
@@ -20,8 +19,8 @@ public struct FavoriteClient: Sendable {
         submitRemove: @escaping @Sendable (_ isbn: String) async -> Void,
         list: @escaping @Sendable () async -> [Book],
         isFavorite: @escaping @Sendable (_ isbn: String) async -> Bool,
-        observe: @escaping @Sendable () -> AnyPublisher<ResourceState<[Book]>, Never>,
-        observeFailures: @escaping @Sendable () -> AnyPublisher<FavoriteWriteFailure, Never>,
+        observe: @escaping @Sendable () -> AsyncStream<ResourceState<[Book]>>,
+        observeFailures: @escaping @Sendable () -> AsyncStream<FavoriteWriteFailure>,
         reload: @escaping @Sendable () async -> Void,
         start: @escaping @Sendable () async -> Void
     ) {
