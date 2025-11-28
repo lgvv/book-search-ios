@@ -75,14 +75,17 @@ private final class FavoriteWriteCoalescer: Sendable {
                     didSucceed = false
                 }
 
-                let hasNewerIntent = state.withValue { $0.pending[isbn] != nil }
+                let isSuperseded = state.withValue { state -> Bool in
+                    guard let pending = state.pending[isbn] else { return false }
+                    return !didSucceed || pending.isFavorite != write.isFavorite
+                }
 
                 await afterWrite(FavoriteWriteOutcome(
                     isbn: isbn,
                     isFavorite: write.isFavorite,
                     book: write.book,
                     didSucceed: didSucceed,
-                    isSupersededByNewerIntent: hasNewerIntent
+                    isSupersededByNewerIntent: isSuperseded
                 ))
 
                 current = state.withValue { state in
@@ -90,7 +93,7 @@ private final class FavoriteWriteCoalescer: Sendable {
                         state.inFlight[isbn] = nil
                         return nil
                     }
-                    if didSucceed, next.isFavorite == write.isFavorite {
+                    if didSucceed, !isSuperseded, next.isFavorite == write.isFavorite {
                         state.inFlight[isbn] = nil
                         return nil
                     }
@@ -143,9 +146,11 @@ final class DefaultFavoriteService: Sendable {
         let failures = AsyncEventChannel<FavoriteWriteFailure>()
 
         let afterWrite: @Sendable (FavoriteWriteOutcome) async -> Void = { outcome in
+            guard !outcome.isSupersededByNewerIntent else { return }
+
             if outcome.didSucceed {
                 await apply(outcome)
-            } else if !outcome.isSupersededByNewerIntent {
+            } else {
                 failures.send(
                     FavoriteWriteFailure(isbn: outcome.isbn, desiredIsFavorite: outcome.isFavorite)
                 )
