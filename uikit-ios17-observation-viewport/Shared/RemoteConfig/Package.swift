@@ -26,5 +26,13 @@ let package = Package(
             ],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
+        .testTarget(
+            name: "RemoteConfigTests",
+            dependencies: [
+                "RemoteConfig",
+                "RemoteConfigInterface"
+            ],
+            swiftSettings: [.swiftLanguageMode(.v6)]
+        ),
     ]
 )
