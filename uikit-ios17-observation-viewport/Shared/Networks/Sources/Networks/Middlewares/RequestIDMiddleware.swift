@@ -10,7 +10,7 @@ public struct RequestIDMiddleware: HTTPClientMiddleware {
         request: HTTPRequest,
         next: @escaping @Sendable (HTTPRequest) async throws -> HTTPResponse
     ) async throws -> HTTPResponse {
-        guard request.headers[Self.headerName] == nil else {
+        guard request.headerValue(forName: Self.headerName) == nil else {
             return try await next(request)
         }
         var headers = request.headers
