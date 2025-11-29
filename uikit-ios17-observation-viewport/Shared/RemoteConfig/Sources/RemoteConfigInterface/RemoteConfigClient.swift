@@ -11,7 +11,7 @@ public struct RemoteConfigClient: Sendable {
 extension RemoteConfigClient {
     public func value<V: ConfigValue>(_ config: ConfigKey<V>) -> V {
         for raw in self.rawValues(config.key) {
-            if let value = V(configRawValue: raw) {
+            if let value = V(configRawValue: raw), config.isValid(value) {
                 return value
             }
         }
