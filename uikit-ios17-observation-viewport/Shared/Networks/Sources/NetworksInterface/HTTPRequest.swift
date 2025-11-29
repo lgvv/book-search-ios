@@ -28,3 +28,9 @@ public struct HTTPRequest: Sendable {
         self.init(method: method, url: url, headers: headers, body: body)
     }
 }
+
+extension HTTPRequest {
+    public func headerValue(forName name: String) -> String? {
+        self.headers.first { $0.key.caseInsensitiveCompare(name) == .orderedSame }?.value
+    }
+}
