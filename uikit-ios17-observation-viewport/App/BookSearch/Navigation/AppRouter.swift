@@ -1,4 +1,3 @@
-import Combine
 import UIKit
 
 import BookModel
@@ -51,7 +50,7 @@ final class AppRouter: Navigator {
 
     private func observeFavoriteWriteFailures() {
         self.failureObservation = Task { [weak self, favoriteClient] in
-            for await failure in favoriteClient.observeFailures().values {
+            for await failure in favoriteClient.observeFailures() {
                 guard let self else { return }
                 let message = failure.desiredIsFavorite
                     ? "즐겨찾기에 추가하지 못했습니다"
