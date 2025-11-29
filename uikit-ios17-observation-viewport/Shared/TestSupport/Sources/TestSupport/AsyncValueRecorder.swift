@@ -1,4 +1,3 @@
-import Combine
 import Foundation
 
 public final class AsyncValueRecorder<Output: Sendable>: Sendable {
@@ -21,18 +20,10 @@ public final class AsyncValueRecorder<Output: Sendable>: Sendable {
     private struct State {
         var values: [Output] = []
         var observers: [UUID: Observer] = [:]
-        var cancellable: AnyCancellable?
         var consumption: Task<Void, Never>?
     }
 
     private let state = Locked(State())
-
-    public init<P: Publisher>(_ publisher: P) where P.Output == Output, P.Failure == Never {
-        let cancellable = publisher.sink { [weak self] value in
-            self?.receive(value)
-        }
-        self.state.withValue { $0.cancellable = cancellable }
-    }
 
     public init(_ stream: AsyncStream<Output>) {
         let consumption = Task { [weak self] in
