@@ -75,7 +75,7 @@ struct SerialTaskQueueTests {
             _ = try await task.value
             Issue.record("오류가 전달되어야 한다")
         } catch {
-            #expect((error as? Boom) == Boom(code: 42))
+            #expect(error as? Boom == Boom(code: 42))
         }
     }
 

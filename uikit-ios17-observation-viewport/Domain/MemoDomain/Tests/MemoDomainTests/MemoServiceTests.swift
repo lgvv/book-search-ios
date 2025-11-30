@@ -112,7 +112,7 @@ struct MemoServiceTests {
             try await self.sut.save(pachinko, text: "좋았다")
             Issue.record("실패해야 한다")
         } catch {
-            #expect((error as? StubMemoRepository.Failure) == .init(reason: "디스크"))
+            #expect(error as? StubMemoRepository.Failure == .init(reason: "디스크"))
         }
     }
 
@@ -215,7 +215,7 @@ struct MemoServiceTests {
             _ = try await self.sut.memo(pachinko.isbn)
             Issue.record("실패해야 한다")
         } catch {
-            #expect((error as? StubMemoRepository.Failure) == .init(reason: "디스크"))
+            #expect(error as? StubMemoRepository.Failure == .init(reason: "디스크"))
         }
     }
 

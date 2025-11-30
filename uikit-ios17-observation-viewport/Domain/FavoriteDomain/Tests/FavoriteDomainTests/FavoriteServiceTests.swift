@@ -57,7 +57,7 @@ struct FavoriteServiceTests {
         await self.sut.add(pachinko)
 
         let values = try? await recorder.wait(untilCount: 2)
-        #expect((values?[1].value) == [pachinko])
+        #expect(values?[1].value == [pachinko])
     }
 
     @Test
@@ -83,7 +83,7 @@ struct FavoriteServiceTests {
         await self.sut.remove(isbn: pachinko.isbn)
 
         let values = try? await recorder.wait(untilCount: 2)
-        #expect((values?[1].value) == [toji])
+        #expect(values?[1].value == [toji])
     }
 
     @Test
@@ -96,7 +96,7 @@ struct FavoriteServiceTests {
         await self.sut.add(pachinko)
 
         let values = try? await recorder.wait(untilCount: 2)
-        #expect((values?[1].value?.map(\.isbn)) == [pachinko.isbn, toji.isbn])
+        #expect(values?[1].value?.map(\.isbn) == [pachinko.isbn, toji.isbn])
     }
 
     @Test
@@ -132,9 +132,9 @@ struct FavoriteServiceTests {
         await self.sut.reload()
 
         let values = try? await recorder.wait(untilCount: 3)
-        #expect((values?[0]) == .failed)
-        #expect((values?[1]) == .loading)
-        #expect((values?[2]) == .failed)
+        #expect(values?[0] == .failed)
+        #expect(values?[1] == .loading)
+        #expect(values?[2] == .failed)
     }
 
     @Test

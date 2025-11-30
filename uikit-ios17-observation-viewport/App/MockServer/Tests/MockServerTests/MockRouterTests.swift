@@ -39,7 +39,7 @@ struct MockRouterTests {
             to: URLRequest.get("https://api.booksearch.dev/v1/books/9788937473135")
         )
 
-        #expect((response.json["isbn"] as? String) == "9788937473135")
+        #expect(response.json["isbn"] as? String == "9788937473135")
     }
 
     @Test
@@ -53,8 +53,8 @@ struct MockRouterTests {
 
         let response = try await sut.respond(to: URLRequest.get("https://api.booksearch.dev/v1/books/1"))
 
-        #expect((response.json["domain"] as? String) == "books")
-        #expect((response.json["id"] as? String) == "1")
+        #expect(response.json["domain"] as? String == "books")
+        #expect(response.json["id"] as? String == "1")
     }
 
     @Test

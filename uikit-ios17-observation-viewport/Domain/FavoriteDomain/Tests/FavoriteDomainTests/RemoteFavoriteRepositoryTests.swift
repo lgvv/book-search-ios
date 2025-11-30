@@ -103,8 +103,8 @@ struct RemoteFavoriteRepositoryTests {
 
         let body = try #require(request.body)
         let json = try #require(JSONSerialization.jsonObject(with: body) as? [String: Any])
-        #expect((json["isbn"] as? String) == pachinko.isbn)
-        #expect((json["title"] as? String) == pachinko.title)
+        #expect(json["isbn"] as? String == pachinko.isbn)
+        #expect(json["title"] as? String == pachinko.title)
     }
 
     @Test

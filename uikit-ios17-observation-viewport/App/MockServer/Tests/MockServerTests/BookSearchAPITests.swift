@@ -30,10 +30,10 @@ struct BookSearchAPITests {
         let response = try await self.performSearch("민음사", page: 1, size: 5)
 
         #expect(response.statusCode == 200)
-        #expect((response.json["page"] as? Int) == 1)
-        #expect((response.json["pageSize"] as? Int) == 5)
+        #expect(response.json["page"] as? Int == 1)
+        #expect(response.json["pageSize"] as? Int == 5)
         #expect(((response.json["items"] as? [Any])?.count) == 5)
-        #expect((response.json["totalCount"] as? Int) != nil)
+        #expect(response.json["totalCount"] as? Int != nil)
     }
 
     @Test
@@ -42,15 +42,15 @@ struct BookSearchAPITests {
 
         #expect(response.statusCode == 200)
         #expect(((response.json["items"] as? [Any])?.count) == 0)
-        #expect((response.json["totalCount"] as? Int) == 0)
+        #expect(response.json["totalCount"] as? Int == 0)
     }
 
     @Test
     func page와size를주지않으면_1페이지20건을기본으로한다() async throws {
         let response = try await self.performSearch("민음사")
 
-        #expect((response.json["page"] as? Int) == 1)
-        #expect((response.json["pageSize"] as? Int) == 20)
+        #expect(response.json["page"] as? Int == 1)
+        #expect(response.json["pageSize"] as? Int == 20)
     }
 
     @Test
@@ -115,7 +115,7 @@ struct BookSearchAPITests {
         )
 
         #expect(response.statusCode == 200)
-        #expect((response.json["isbn"] as? String) == isbn)
+        #expect(response.json["isbn"] as? String == isbn)
     }
 
     @Test
@@ -135,7 +135,7 @@ struct BookSearchAPITests {
         let response = try await self.sut.respond(to: URLRequest(url: url))
 
         #expect(response.statusCode == 200)
-        #expect((response.json["totalCount"] as? Int ?? 0) > 0)
+        #expect(response.json["totalCount"] as? Int ?? 0 > 0)
     }
 }
 
