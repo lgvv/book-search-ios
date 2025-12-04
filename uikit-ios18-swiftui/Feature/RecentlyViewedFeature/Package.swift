@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "RecentlyViewedFeature",
     platforms: [
-        .iOS(.v17)
+        .iOS(.v18)
     ],
     products: [
         .library(name: "RecentlyViewedFeatureInterface", targets: ["RecentlyViewedFeatureInterface"]),
