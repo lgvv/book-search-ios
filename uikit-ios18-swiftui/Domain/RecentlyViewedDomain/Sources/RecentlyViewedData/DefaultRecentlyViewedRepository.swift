@@ -1,23 +1,51 @@
-import CoreData
 import Foundation
+import SwiftData
 
 import BookModel
 import PersistenceInterface
 import RecentlyViewedCore
 import RecentlyViewedModel
 
-@objc(RecentlyViewedBookEntity)
-final class RecentlyViewedBookEntity: NSManagedObject {
-    static let entityName = "RecentlyViewedBookEntity"
+enum RecentlyViewedSchemaV1: VersionedSchema {
+    static var versionIdentifier: Schema.Version { Schema.Version(1, 0, 0) }
 
-    @NSManaged var isbn: String
-    @NSManaged var title: String
-    @NSManaged var author: String?
-    @NSManaged var publisher: String?
-    @NSManaged var publishedAt: String?
-    @NSManaged var coverURLString: String?
-    @NSManaged var viewedAt: Date
+    static var models: [any PersistentModel.Type] { [RecentlyViewedBookRecord.self] }
 
+    @Model
+    final class RecentlyViewedBookRecord {
+        #Unique<RecentlyViewedBookRecord>([\.isbn])
+
+        #Index<RecentlyViewedBookRecord>([\.viewedAt])
+
+        var isbn: String
+        var title: String
+        var author: String?
+        var publisher: String?
+        var publishedAt: String?
+        var coverURLString: String?
+        var viewedAt: Date
+
+        init(book: Book, viewedAt: Date) {
+            self.isbn = book.isbn
+            self.title = book.title
+            self.author = book.author
+            self.publisher = book.publisher
+            self.publishedAt = book.publishedAt
+            self.coverURLString = book.coverImageURL?.absoluteString
+            self.viewedAt = viewedAt
+        }
+    }
+}
+
+typealias RecentlyViewedBookRecord = RecentlyViewedSchemaV1.RecentlyViewedBookRecord
+
+enum RecentlyViewedMigrationPlan: SchemaMigrationPlan {
+    static var schemas: [any VersionedSchema.Type] { [RecentlyViewedSchemaV1.self] }
+
+    static var stages: [MigrationStage] { [] }
+}
+
+extension RecentlyViewedBookRecord {
     func fill(with book: Book, viewedAt: Date) {
         self.isbn = book.isbn
         self.title = book.title
@@ -43,64 +71,28 @@ final class RecentlyViewedBookEntity: NSManagedObject {
     }
 }
 
-enum RecentlyViewedObjectModel {
-    static let schema = CoreDataSchema(v1())
-
-    private static func v1() -> NSManagedObjectModel {
-        let entity = NSEntityDescription()
-        entity.name = RecentlyViewedBookEntity.entityName
-        entity.managedObjectClassName = NSStringFromClass(RecentlyViewedBookEntity.self)
-
-        entity.properties = [
-            Self.attribute("isbn", .stringAttributeType, isOptional: false),
-            Self.attribute("title", .stringAttributeType, isOptional: false),
-            Self.attribute("author", .stringAttributeType),
-            Self.attribute("publisher", .stringAttributeType),
-            Self.attribute("publishedAt", .stringAttributeType),
-            Self.attribute("coverURLString", .stringAttributeType),
-            Self.attribute("viewedAt", .dateAttributeType, isOptional: false)
-        ]
-        entity.uniquenessConstraints = [["isbn"]]
-
-        let model = NSManagedObjectModel()
-        model.entities = [entity]
-        model.versionIdentifiers = ["1"]
-        return model
-    }
-
-    private static func attribute(
-        _ name: String,
-        _ type: NSAttributeType,
-        isOptional: Bool = true
-    ) -> NSAttributeDescription {
-        let attribute = NSAttributeDescription()
-        attribute.name = name
-        attribute.attributeType = type
-        attribute.isOptional = isOptional
-        return attribute
-    }
-}
-
 final class DefaultRecentlyViewedRepository: RecentlyViewedRepository {
-    private let store: any CoreDataStore
+    private let store: any SwiftDataStore
 
-    init(store: any CoreDataStore) {
+    init(store: any SwiftDataStore) {
         self.store = store
     }
 
     func record(book: Book, keeping maxCount: Int) async throws {
         try await self.store.perform { context in
-            let request = Self.request()
-            request.predicate = NSPredicate(format: "isbn == %@", book.isbn)
+            let isbn = book.isbn
+            var descriptor = FetchDescriptor<RecentlyViewedBookRecord>(
+                predicate: #Predicate { $0.isbn == isbn }
+            )
+            descriptor.fetchLimit = 1
 
-            let record = try context.fetch(request).first
-                ?? (NSEntityDescription.insertNewObject(
-                    forEntityName: RecentlyViewedBookEntity.entityName,
-                    into: context
-                ) as? RecentlyViewedBookEntity)
-            record?.fill(with: book, viewedAt: Date())
+            if let existing = try context.fetch(descriptor).first {
+                existing.fill(with: book, viewedAt: Date())
+            } else {
+                context.insert(RecentlyViewedBookRecord(book: book, viewedAt: Date()))
+            }
 
-            let all = try context.fetch(Self.request())
+            let all = try context.fetch(Self.descriptor())
             for stale in all.dropFirst(maxCount) {
                 context.delete(stale)
             }
@@ -111,41 +103,38 @@ final class DefaultRecentlyViewedRepository: RecentlyViewedRepository {
 
     func list() async throws -> [ViewedBook] {
         try await self.store.perform { context in
-            try context.fetch(Self.request()).map(\.asDomain)
+            try context.fetch(Self.descriptor()).map(\.asDomain)
         }
     }
 
     func remove(isbn: String) async throws {
         try await self.store.perform { context in
-            let request = Self.request()
-            request.predicate = NSPredicate(format: "isbn == %@", isbn)
-            for target in try context.fetch(request) {
-                context.delete(target)
-            }
+            try context.delete(
+                model: RecentlyViewedBookRecord.self,
+                where: #Predicate { $0.isbn == isbn }
+            )
             try context.save()
         }
     }
 
     func clear() async throws {
         try await self.store.perform { context in
-            for target in try context.fetch(Self.request()) {
-                context.delete(target)
-            }
+            try context.delete(model: RecentlyViewedBookRecord.self)
             try context.save()
         }
     }
 
-    private static func request() -> NSFetchRequest<RecentlyViewedBookEntity> {
-        let request = NSFetchRequest<RecentlyViewedBookEntity>(
-            entityName: RecentlyViewedBookEntity.entityName
+    private static func descriptor() -> FetchDescriptor<RecentlyViewedBookRecord> {
+        FetchDescriptor<RecentlyViewedBookRecord>(
+            sortBy: [SortDescriptor(\.viewedAt, order: .reverse)]
         )
-        request.sortDescriptors = [NSSortDescriptor(key: "viewedAt", ascending: false)]
-        return request
     }
 }
 
-public func makeRecentlyViewedRepository(storeFactory: CoreDataStoreFactory) -> any RecentlyViewedRepository {
+public func makeRecentlyViewedRepository(
+    storeFactory: SwiftDataStoreFactory
+) -> any RecentlyViewedRepository {
     DefaultRecentlyViewedRepository(
-        store: storeFactory.make("RecentlyViewed", RecentlyViewedObjectModel.schema)
+        store: storeFactory.make("RecentlyViewed", RecentlyViewedMigrationPlan.self)
     )
 }
