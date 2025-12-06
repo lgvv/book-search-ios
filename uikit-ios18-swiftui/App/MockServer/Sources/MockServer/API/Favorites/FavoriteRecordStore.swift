@@ -1,46 +1,45 @@
-import CoreData
 import Foundation
+import SwiftData
 
 import PersistenceInterface
 
 struct FavoriteRecordStore: Sendable {
-    private let store: any CoreDataStore
+    private let store: any SwiftDataStore
 
-    init(store: any CoreDataStore) {
+    init(store: any SwiftDataStore) {
         self.store = store
     }
 
     func all() async throws -> [FavoriteRecord] {
         try await self.store.perform { context in
-            try context.fetch(Self.fetchRequest()).map(\.record)
+            try context.fetch(Self.descriptor()).map(\.record)
         }
     }
 
     func insertIfAbsent(_ record: FavoriteRecord) async throws -> FavoriteRecord? {
         try await self.store.perform { context in
-            let request = Self.fetchRequest()
-            request.predicate = NSPredicate(format: "isbn == %@", record.isbn)
-            guard try context.count(for: request) == 0 else { return nil }
+            let isbn = record.isbn
+            var existing = FetchDescriptor<FavoriteRecordModel>(
+                predicate: #Predicate { $0.isbn == isbn }
+            )
+            existing.fetchLimit = 1
+            guard try context.fetchCount(existing) == 0 else { return nil }
 
-            guard let object = NSEntityDescription.insertNewObject(
-                forEntityName: MockFavoriteBookEntity.entityName,
-                into: context
-            ) as? MockFavoriteBookEntity else {
-                throw FavoriteStoreError.entityClassMismatch
-            }
-
-            object.fill(with: record)
+            let model = FavoriteRecordModel(record: record)
+            context.insert(model)
             try context.save()
-            return object.record
+            return model.record
         }
     }
 
     func delete(isbn: String) async throws -> Bool {
         try await self.store.perform { context in
-            let request = Self.fetchRequest()
-            request.predicate = NSPredicate(format: "isbn == %@", isbn)
+            var descriptor = FetchDescriptor<FavoriteRecordModel>(
+                predicate: #Predicate { $0.isbn == isbn }
+            )
+            descriptor.fetchLimit = 1
 
-            let targets = try context.fetch(request)
+            let targets = try context.fetch(descriptor)
             guard !targets.isEmpty else { return false }
 
             for target in targets {
@@ -51,15 +50,11 @@ struct FavoriteRecordStore: Sendable {
         }
     }
 
-    private static func fetchRequest() -> NSFetchRequest<MockFavoriteBookEntity> {
-        let request = NSFetchRequest<MockFavoriteBookEntity>(entityName: MockFavoriteBookEntity.entityName)
-        request.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: false)]
-        return request
+    private static func descriptor() -> FetchDescriptor<FavoriteRecordModel> {
+        FetchDescriptor<FavoriteRecordModel>(
+            sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
+        )
     }
-}
-
-enum FavoriteStoreError: Error {
-    case entityClassMismatch
 }
 
 struct FavoriteRecord: Sendable {

@@ -5,12 +5,12 @@ import SharedFoundation
 
 public enum MockServer {
     public struct Configuration: Sendable {
-        public var storeFactory: CoreDataStoreFactory
+        public var storeFactory: SwiftDataStoreFactory
         public var latencyNanoseconds: UInt64
         public var faultProfile: MockFaultProfile
 
         public init(
-            storeFactory: CoreDataStoreFactory,
+            storeFactory: SwiftDataStoreFactory,
             latencyNanoseconds: UInt64 = 400_000_000,
             faultProfile: MockFaultProfile = .disabled
         ) {
@@ -24,7 +24,7 @@ public enum MockServer {
 
     public static func install(_ configuration: Configuration) -> URLSession {
         let favoriteStore = FavoriteRecordStore(
-            store: configuration.storeFactory.make(FavoriteFakeDB.storeName, FavoriteFakeDB.schema)
+            store: configuration.storeFactory.make(FavoriteFakeDB.storeName, FavoriteMigrationPlan.self)
         )
 
         let router = MockRouter(
