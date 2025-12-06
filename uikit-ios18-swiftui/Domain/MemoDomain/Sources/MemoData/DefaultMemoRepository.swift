@@ -1,24 +1,53 @@
-import CoreData
 import Foundation
+import SwiftData
 
 import BookModel
 import MemoCore
 import MemoModel
 import PersistenceInterface
 
-@objc(BookMemoEntity)
-final class BookMemoEntity: NSManagedObject {
-    static let entityName = "BookMemoEntity"
+enum MemoSchemaV1: VersionedSchema {
+    static var versionIdentifier: Schema.Version { Schema.Version(1, 0, 0) }
 
-    @NSManaged var isbn: String
-    @NSManaged var text: String
-    @NSManaged var title: String
-    @NSManaged var author: String?
-    @NSManaged var publisher: String?
-    @NSManaged var publishedAt: String?
-    @NSManaged var coverURLString: String?
-    @NSManaged var updatedAt: Date
+    static var models: [any PersistentModel.Type] { [BookMemoRecord.self] }
 
+    @Model
+    final class BookMemoRecord {
+        #Unique<BookMemoRecord>([\.isbn])
+
+        #Index<BookMemoRecord>([\.updatedAt])
+
+        var isbn: String
+        var text: String
+        var title: String
+        var author: String?
+        var publisher: String?
+        var publishedAt: String?
+        var coverURLString: String?
+        var updatedAt: Date
+
+        init(book: Book, text: String, updatedAt: Date) {
+            self.isbn = book.isbn
+            self.text = text
+            self.title = book.title
+            self.author = book.author
+            self.publisher = book.publisher
+            self.publishedAt = book.publishedAt
+            self.coverURLString = book.coverImageURL?.absoluteString
+            self.updatedAt = updatedAt
+        }
+    }
+}
+
+typealias BookMemoRecord = MemoSchemaV1.BookMemoRecord
+
+enum MemoMigrationPlan: SchemaMigrationPlan {
+    static var schemas: [any VersionedSchema.Type] { [MemoSchemaV1.self] }
+
+    static var stages: [MigrationStage] { [] }
+}
+
+extension BookMemoRecord {
     func fill(with book: Book, text: String, updatedAt: Date) {
         self.isbn = book.isbn
         self.text = text
@@ -33,135 +62,66 @@ final class BookMemoEntity: NSManagedObject {
     var asDomain: BookMemo {
         BookMemo(
             book: Book(
-                isbn: isbn,
-                title: title,
-                author: author,
-                publisher: publisher,
-                publishedAt: publishedAt,
-                coverImageURL: coverURLString.flatMap(URL.init(string:))
+                isbn: self.isbn,
+                title: self.title,
+                author: self.author,
+                publisher: self.publisher,
+                publishedAt: self.publishedAt,
+                coverImageURL: self.coverURLString.flatMap(URL.init(string:))
             ),
-            text: text,
-            updatedAt: updatedAt
+            text: self.text,
+            updatedAt: self.updatedAt
         )
     }
 }
 
-enum MemoObjectModel {
-    static let schema = CoreDataSchema(versions: [v1(), v2()])
-
-    private static func v1() -> NSManagedObjectModel {
-        let entity = NSEntityDescription()
-        entity.name = BookMemoEntity.entityName
-        entity.managedObjectClassName = NSStringFromClass(BookMemoEntity.self)
-
-        entity.properties = [
-            Self.attribute("isbn", .stringAttributeType, isOptional: false),
-            Self.attribute("text", .stringAttributeType, isOptional: false),
-            Self.attribute("title", .stringAttributeType, isOptional: false),
-            Self.attribute("author", .stringAttributeType),
-            Self.attribute("publisher", .stringAttributeType),
-            Self.attribute("publishedAt", .stringAttributeType),
-            Self.attribute("coverURLString", .stringAttributeType),
-            Self.attribute("updatedAt", .dateAttributeType, isOptional: false)
-        ]
-
-        let model = NSManagedObjectModel()
-        model.entities = [entity]
-        model.versionIdentifiers = ["1"]
-        return model
-    }
-
-    private static func v2() -> NSManagedObjectModel {
-        let entity = NSEntityDescription()
-        entity.name = BookMemoEntity.entityName
-        entity.managedObjectClassName = NSStringFromClass(BookMemoEntity.self)
-
-        entity.properties = [
-            Self.attribute("isbn", .stringAttributeType, isOptional: false),
-            Self.attribute("text", .stringAttributeType, isOptional: false),
-            Self.attribute("title", .stringAttributeType, isOptional: false),
-            Self.attribute("author", .stringAttributeType),
-            Self.attribute("publisher", .stringAttributeType),
-            Self.attribute("publishedAt", .stringAttributeType),
-            Self.attribute("coverURLString", .stringAttributeType),
-            Self.attribute("updatedAt", .dateAttributeType, isOptional: false)
-        ]
-
-        entity.uniquenessConstraints = [["isbn"]]
-
-        let model = NSManagedObjectModel()
-        model.entities = [entity]
-        model.versionIdentifiers = ["2"]
-        return model
-    }
-
-    private static func attribute(
-        _ name: String,
-        _ type: NSAttributeType,
-        isOptional: Bool = true
-    ) -> NSAttributeDescription {
-        let attribute = NSAttributeDescription()
-        attribute.name = name
-        attribute.attributeType = type
-        attribute.isOptional = isOptional
-        return attribute
-    }
-}
-
-enum MemoRepositoryError: Error {
-    case unexpectedEntityType
-}
-
 final class DefaultMemoRepository: MemoRepository {
-    private let store: any CoreDataStore
+    private let store: any SwiftDataStore
 
-    init(store: any CoreDataStore) {
+    init(store: any SwiftDataStore) {
         self.store = store
     }
 
     func list() async throws -> [BookMemo] {
-        try await store.perform { context in
-            try context.fetch(Self.request()).map(\.asDomain)
+        try await self.store.perform { context in
+            try context.fetch(Self.descriptor()).map(\.asDomain)
         }
     }
 
     func save(_ book: Book, text: String, updatedAt: Date) async throws {
-        try await store.perform { context in
-            let request = Self.request()
-            request.predicate = NSPredicate(format: "isbn == %@", book.isbn)
+        try await self.store.perform { context in
+            let isbn = book.isbn
+            var descriptor = FetchDescriptor<BookMemoRecord>(
+                predicate: #Predicate { $0.isbn == isbn }
+            )
+            descriptor.fetchLimit = 1
 
-            let record = try context.fetch(request).first
-                ?? NSEntityDescription.insertNewObject(
-                    forEntityName: BookMemoEntity.entityName,
-                    into: context
-                ) as? BookMemoEntity
-            guard let record else { throw MemoRepositoryError.unexpectedEntityType }
+            if let existing = try context.fetch(descriptor).first {
+                existing.fill(with: book, text: text, updatedAt: updatedAt)
+            } else {
+                context.insert(BookMemoRecord(book: book, text: text, updatedAt: updatedAt))
+            }
 
-            record.fill(with: book, text: text, updatedAt: updatedAt)
             try context.save()
         }
     }
 
     func remove(isbn: String) async throws {
-        try await store.perform { context in
-            let request = Self.request()
-            request.predicate = NSPredicate(format: "isbn == %@", isbn)
-            for target in try context.fetch(request) {
-                context.delete(target)
-            }
+        try await self.store.perform { context in
+            try context.delete(model: BookMemoRecord.self, where: #Predicate { $0.isbn == isbn })
             try context.save()
         }
     }
 
-    private static func request() -> NSFetchRequest<BookMemoEntity> {
-        let request = NSFetchRequest<BookMemoEntity>(entityName: BookMemoEntity.entityName)
-        request.sortDescriptors = [NSSortDescriptor(key: "updatedAt", ascending: false)]
-        return request
+    private static func descriptor() -> FetchDescriptor<BookMemoRecord> {
+        FetchDescriptor<BookMemoRecord>(
+            sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
+        )
     }
 }
 
-public func makeMemoRepository(storeFactory: CoreDataStoreFactory) -> any MemoRepository {
+public func makeMemoRepository(storeFactory: SwiftDataStoreFactory) -> any MemoRepository {
     DefaultMemoRepository(
-        store: storeFactory.make("Memo", MemoObjectModel.schema)
+        store: storeFactory.make("Memo", MemoMigrationPlan.self)
     )
 }
