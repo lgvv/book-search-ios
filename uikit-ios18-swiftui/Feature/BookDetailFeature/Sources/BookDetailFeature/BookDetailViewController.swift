@@ -38,7 +38,7 @@ final class BookDetailViewController: UIViewController {
 
         observe()
 
-        store.send(.viewDidLoad)
+        store.send(.start)
     }
 
     private static let coverSize = CGSize(width: 180, height: 260)

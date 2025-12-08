@@ -15,7 +15,7 @@ struct BookDetailReducerTests {
     func 화면이뜨면_즐겨찾기와메모를관찰하고열람을기록한다() {
         var state = BookDetailReducer.State(book: self.book)
 
-        let effects = self.sut.reduce(into: &state, action: .view(.viewDidLoad))
+        let effects = self.sut.reduce(into: &state, action: .view(.start))
 
         #expect(effects == [
             .observeFavorites(isbn: "1"),
@@ -28,7 +28,7 @@ struct BookDetailReducerTests {
     func 열람기록은_상세를연순간에일어난다() {
         var state = BookDetailReducer.State(book: self.book)
 
-        let onLoad = self.sut.reduce(into: &state, action: .view(.viewDidLoad))
+        let onLoad = self.sut.reduce(into: &state, action: .view(.start))
         let onToggle = self.sut.reduce(into: &state, action: .view(.toggleFavorite))
         let onEdit = self.sut.reduce(into: &state, action: .view(.editMemo))
 

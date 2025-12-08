@@ -22,7 +22,7 @@ struct BookDetailReducer: Sendable {
         case feedback(FeedbackAction)
 
         enum ViewAction: Sendable {
-            case viewDidLoad
+            case start
             case toggleFavorite
             case editMemo
         }
@@ -60,7 +60,7 @@ struct BookDetailReducer: Sendable {
 
     private func reduceView(into state: inout State, action: Action.ViewAction) -> [Effect] {
         switch action {
-        case .viewDidLoad:
+        case .start:
             return [
                 .observeFavorites(isbn: state.book.isbn),
                 .observeMemo(isbn: state.book.isbn),
