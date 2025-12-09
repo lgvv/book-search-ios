@@ -52,7 +52,7 @@ final class MemoEditViewController: UIViewController {
 
         observe()
 
-        store.send(.viewDidLoad)
+        store.send(.start)
     }
 
     override func viewDidAppear(_ animated: Bool) {

@@ -22,7 +22,7 @@ struct MemoEditReducerTests {
     func 화면이뜨면_메모를읽는다() {
         var state = MemoEditReducer.State(book: self.book)
 
-        let effects = self.sut.reduce(into: &state, action: .view(.viewDidLoad))
+        let effects = self.sut.reduce(into: &state, action: .view(.start))
 
         #expect(effects == [.loadMemo(isbn: "1")])
     }
