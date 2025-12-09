@@ -1,3 +1,4 @@
+import SwiftUI
 import UIKit
 
 import BookModel
@@ -12,6 +13,6 @@ public struct BookDetailSceneBuilder: BookDetailSceneBuildable {
     ) -> UIViewController {
         let store = BookDetailStore(payload: payload)
         store.onDelegate = onDelegate
-        return BookDetailViewController(store: store)
+        return UIHostingController(rootView: BookDetailView(store: store))
     }
 }
