@@ -12,7 +12,7 @@ struct BookDetailReducerTests {
     private let book = Book(isbn: "1", title: "파친코", author: "이민진")
 
     @Test
-    func 화면이뜨면_즐겨찾기와메모를관찰하고열람을기록한다() {
+    func 화면이뜨면_즐겨찾기와메모를관찰한다() {
         var state = BookDetailReducer.State(book: self.book)
 
         let effects = self.sut.reduce(into: &state, action: .view(.start))
@@ -20,21 +20,17 @@ struct BookDetailReducerTests {
         #expect(effects == [
             .observeFavorites(isbn: "1"),
             .observeMemo(isbn: "1"),
-            .recordViewed(self.book),
         ])
     }
 
     @Test
-    func 열람기록은_상세를연순간에일어난다() {
+    func 화면이여러번뜨어도_같은Effect만낸다() {
         var state = BookDetailReducer.State(book: self.book)
 
-        let onLoad = self.sut.reduce(into: &state, action: .view(.start))
-        let onToggle = self.sut.reduce(into: &state, action: .view(.toggleFavorite))
-        let onEdit = self.sut.reduce(into: &state, action: .view(.editMemo))
+        let first = self.sut.reduce(into: &state, action: .view(.start))
+        let second = self.sut.reduce(into: &state, action: .view(.start))
 
-        #expect(onLoad.contains(.recordViewed(self.book)))
-        #expect(!(onToggle.contains(.recordViewed(self.book))))
-        #expect(!(onEdit.contains(.recordViewed(self.book))))
+        #expect(first == second)
     }
 
     @Test

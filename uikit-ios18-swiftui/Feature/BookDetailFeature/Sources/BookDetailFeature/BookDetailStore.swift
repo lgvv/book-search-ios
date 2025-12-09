@@ -5,7 +5,6 @@ import BookDetailFeatureInterface
 import DependencyResolver
 import FavoriteCore
 import MemoCore
-import RecentlyViewedCore
 import FeatureSupport
 
 @MainActor
@@ -22,7 +21,6 @@ final class BookDetailStore {
 
     @ObservationIgnored @Resolved(FavoriteClientKey.self) private var favoriteClient
     @ObservationIgnored @Resolved(MemoClientKey.self) private var memoClient
-    @ObservationIgnored @Resolved(RecentlyViewedClientKey.self) private var recentlyViewedClient
 
     init(payload: BookDetailPayload) {
         state = .init(
@@ -67,11 +65,6 @@ final class BookDetailStore {
                 } else {
                     await favoriteClient.submitRemove(book.isbn)
                 }
-            }
-
-        case let .recordViewed(book):
-            nonCancellables.enqueue(.recordViewed) { [recentlyViewedClient] in
-                await recentlyViewedClient.record(book)
             }
 
         case let .observeMemo(isbn):

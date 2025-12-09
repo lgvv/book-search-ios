@@ -37,7 +37,6 @@ struct BookDetailReducer: Sendable {
         case observeFavorites
         case observeMemo
         case setFavorite
-        case recordViewed
     }
 
     enum Effect: Sendable, Equatable {
@@ -46,7 +45,6 @@ struct BookDetailReducer: Sendable {
         case observeFavorites(isbn: String)
         case setFavorite(Book, to: Bool)
         case observeMemo(isbn: String)
-        case recordViewed(Book)
     }
 
     func reduce(into state: inout State, action: Action) -> [Effect] {
@@ -63,8 +61,7 @@ struct BookDetailReducer: Sendable {
         case .start:
             return [
                 .observeFavorites(isbn: state.book.isbn),
-                .observeMemo(isbn: state.book.isbn),
-                .recordViewed(state.book)
+                .observeMemo(isbn: state.book.isbn)
             ]
 
         case .toggleFavorite:

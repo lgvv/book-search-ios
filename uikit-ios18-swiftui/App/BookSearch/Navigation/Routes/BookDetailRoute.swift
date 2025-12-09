@@ -5,6 +5,7 @@ import BookModel
 import DependencyResolver
 import FavoriteCore
 import MemoCore
+import RecentlyViewedCore
 import MemoModel
 
 struct BookDetailRoute: Route {
@@ -12,6 +13,7 @@ struct BookDetailRoute: Route {
 
     @Resolved(FavoriteClientKey.self) private var favoriteClient
     @Resolved(MemoClientKey.self) private var memoClient
+    @Resolved(RecentlyViewedClientKey.self) private var recentlyViewedClient
 
     var presentation: RoutePresentation { .push }
 
@@ -19,7 +21,8 @@ struct BookDetailRoute: Route {
         let payload = await BookDetailPayload.make(
             book: self.book,
             favoriteClient: self.favoriteClient,
-            memoClient: self.memoClient
+            memoClient: self.memoClient,
+            recentlyViewedClient: self.recentlyViewedClient
         )
 
         let navigator = context.navigator
