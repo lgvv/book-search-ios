@@ -1,3 +1,4 @@
+import SwiftUI
 import UIKit
 
 import BookModel
@@ -12,6 +13,6 @@ public struct MemoEditSceneBuilder: MemoEditSceneBuildable {
     ) -> UIViewController {
         let store = MemoEditStore(book: book)
         store.onDelegate = onDelegate
-        return MemoEditViewController(store: store)
+        return UIHostingController(rootView: MemoEditView(store: store))
     }
 }
