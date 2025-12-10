@@ -52,7 +52,7 @@ final class FavoriteViewController: UIViewController {
 
         observe()
 
-        store.send(.viewDidLoad)
+        store.send(.start)
     }
 
     private lazy var stateView: EmptyStateView = {

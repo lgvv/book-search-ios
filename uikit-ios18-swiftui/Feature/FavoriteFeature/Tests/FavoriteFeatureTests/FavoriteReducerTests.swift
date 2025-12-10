@@ -19,7 +19,7 @@ struct FavoriteReducerTests {
     func 화면이뜨면_즐겨찾기와메모를관찰한다() {
         var state = FavoriteReducer.State()
 
-        let effects = self.sut.reduce(into: &state, action: .view(.viewDidLoad))
+        let effects = self.sut.reduce(into: &state, action: .view(.start))
 
         #expect(effects == [.observeFavorites, .observeMemos])
     }
