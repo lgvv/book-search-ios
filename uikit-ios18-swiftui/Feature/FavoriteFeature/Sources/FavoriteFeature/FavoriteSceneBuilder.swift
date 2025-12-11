@@ -1,3 +1,4 @@
+import SwiftUI
 import UIKit
 
 import BookModel
@@ -9,6 +10,6 @@ public struct FavoriteSceneBuilder: FavoriteSceneBuildable {
     public func makeScene(onDelegate: @escaping (FavoriteDelegateAction) -> Void) -> UIViewController {
         let store = FavoriteStore()
         store.onDelegate = onDelegate
-        return FavoriteViewController(store: store)
+        return UIHostingController(rootView: FavoriteView(store: store))
     }
 }
