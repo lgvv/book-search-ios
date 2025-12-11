@@ -18,7 +18,7 @@ struct MemoReducer: Sendable {
         case feedback(FeedbackAction)
 
         enum ViewAction: Sendable {
-            case viewDidLoad
+            case start
             case retryLoad
             case toggleFavorite(Book)
             case selectBook(Book)
@@ -56,7 +56,7 @@ struct MemoReducer: Sendable {
 
     private func reduceView(into state: inout State, action: Action.ViewAction) -> [Effect] {
         switch action {
-        case .viewDidLoad:
+        case .start:
             return [
                 .observeMemos,
                 .observeFavorites

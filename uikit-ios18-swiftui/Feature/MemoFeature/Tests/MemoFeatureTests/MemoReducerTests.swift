@@ -24,7 +24,7 @@ struct MemoReducerTests {
     func 화면이뜨면_메모와즐겨찾기를관찰한다() {
         var state = MemoReducer.State()
 
-        let effects = self.sut.reduce(into: &state, action: .view(.viewDidLoad))
+        let effects = self.sut.reduce(into: &state, action: .view(.start))
 
         #expect(effects == [.observeMemos, .observeFavorites])
     }

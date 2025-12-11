@@ -55,7 +55,7 @@ final class MemoViewController: UIViewController {
 
         observe()
 
-        store.send(.viewDidLoad)
+        store.send(.start)
     }
 
     private lazy var stateView: EmptyStateView = {
