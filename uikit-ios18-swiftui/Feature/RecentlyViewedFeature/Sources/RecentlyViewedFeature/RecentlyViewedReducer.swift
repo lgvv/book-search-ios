@@ -20,7 +20,7 @@ struct RecentlyViewedReducer: Sendable {
         case feedback(FeedbackAction)
 
         enum ViewAction: Sendable {
-            case viewDidLoad
+            case start
             case retryLoad
             case selectBook(Book)
             case removeItem(isbn: String)
@@ -65,7 +65,7 @@ struct RecentlyViewedReducer: Sendable {
 
     private func reduceView(into state: inout State, action: Action.ViewAction) -> [Effect] {
         switch action {
-        case .viewDidLoad:
+        case .start:
             return [.observeItems, .observeFavorites, .observeMemos]
 
         case .retryLoad:

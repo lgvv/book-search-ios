@@ -63,7 +63,7 @@ final class RecentlyViewedViewController: UIViewController {
 
         observe()
 
-        store.send(.viewDidLoad)
+        store.send(.start)
     }
 
     private lazy var clearButton: UIBarButtonItem = {

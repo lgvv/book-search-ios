@@ -24,7 +24,7 @@ struct RecentlyViewedReducerTests {
     func 화면이뜨면_목록과즐겨찾기와메모를관찰한다() {
         var state = RecentlyViewedReducer.State()
 
-        let effects = self.sut.reduce(into: &state, action: .view(.viewDidLoad))
+        let effects = self.sut.reduce(into: &state, action: .view(.start))
 
         #expect(effects == [.observeItems, .observeFavorites, .observeMemos])
     }
