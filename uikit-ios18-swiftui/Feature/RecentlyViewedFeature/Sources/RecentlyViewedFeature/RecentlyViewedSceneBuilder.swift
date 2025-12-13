@@ -1,3 +1,4 @@
+import SwiftUI
 import UIKit
 
 import BookModel
@@ -11,6 +12,6 @@ public struct RecentlyViewedSceneBuilder: RecentlyViewedSceneBuildable {
     ) -> UIViewController {
         let store = RecentlyViewedStore()
         store.onDelegate = onDelegate
-        return RecentlyViewedViewController(store: store)
+        return UIHostingController(rootView: RecentlyViewedView(store: store))
     }
 }
