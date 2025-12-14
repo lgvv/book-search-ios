@@ -34,6 +34,40 @@ struct SearchReducer: Sendable {
         var consecutiveEmptyPages = 0
 
         var isShowingRecents: Bool { query.isEmpty }
+
+        var emptyState: EmptyState? {
+            guard books.isEmpty else { return nil }
+            switch pagination {
+            case .failed:
+                return .failed
+            case .exhausted where !query.isEmpty:
+                return .noResults
+            default:
+                return nil
+            }
+        }
+
+        var pagingFooter: PagingFooter? {
+            guard !books.isEmpty else { return nil }
+            switch pagination {
+            case .loading(isFirstPage: false):
+                return .loading
+            case .failed:
+                return .failed
+            default:
+                return nil
+            }
+        }
+    }
+
+    enum EmptyState: Sendable, Equatable {
+        case noResults
+        case failed
+    }
+
+    enum PagingFooter: Sendable, Equatable {
+        case loading
+        case failed
     }
 
     private static let maxConsecutiveEmptyPages = 3
