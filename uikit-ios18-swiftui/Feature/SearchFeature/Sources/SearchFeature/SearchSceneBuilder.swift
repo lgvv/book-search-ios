@@ -1,3 +1,4 @@
+import SwiftUI
 import UIKit
 
 import BookModel
@@ -9,6 +10,6 @@ public struct SearchSceneBuilder: SearchSceneBuildable {
     public func makeScene(onDelegate: @escaping (SearchDelegateAction) -> Void) -> UIViewController {
         let store = SearchStore()
         store.onDelegate = onDelegate
-        return SearchViewController(store: store)
+        return UIHostingController(rootView: SearchView(store: store))
     }
 }
