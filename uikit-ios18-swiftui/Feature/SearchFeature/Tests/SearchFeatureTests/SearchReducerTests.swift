@@ -38,7 +38,7 @@ struct SearchReducerTests {
     func 화면이뜨면_최근검색어와즐겨찾기와메모를관찰한다() {
         var state = SearchReducer.State()
 
-        let effects = self.sut.reduce(into: &state, action: .view(.viewDidLoad))
+        let effects = self.sut.reduce(into: &state, action: .view(.start))
 
         #expect(effects == [.loadRecentTerms, .observeFavorites, .observeMemos])
     }

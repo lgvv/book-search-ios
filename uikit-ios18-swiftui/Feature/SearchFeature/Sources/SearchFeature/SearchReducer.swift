@@ -77,7 +77,7 @@ struct SearchReducer: Sendable {
         case feedback(FeedbackAction)
 
         enum ViewAction: Sendable {
-            case viewDidLoad
+            case start
             case queryChanged(String)
             case submitQuery(String)
             case reachedNearBottom
@@ -132,7 +132,7 @@ struct SearchReducer: Sendable {
 
     private func reduceView(into state: inout State, action: Action.ViewAction) -> [Effect] {
         switch action {
-        case .viewDidLoad:
+        case .start:
             return [
                 .loadRecentTerms,
                 .observeFavorites,

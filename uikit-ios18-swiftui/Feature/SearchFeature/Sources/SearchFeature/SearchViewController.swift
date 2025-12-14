@@ -98,7 +98,7 @@ final class SearchViewController: UIViewController {
 
         observe()
 
-        store.send(.viewDidLoad)
+        store.send(.start)
     }
 
     private lazy var searchController: UISearchController = {

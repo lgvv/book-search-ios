@@ -70,7 +70,7 @@ struct SearchStoreTests {
     func 화면이뜨면_최근검색어를읽는다() async {
         let (store, recorder) = self.makeStore()
 
-        store.send(.viewDidLoad)
+        store.send(.start)
 
         let didLoad = await waitUntil { recorder.contains("listTerms") }
         #expect(didLoad)
