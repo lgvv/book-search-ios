@@ -479,4 +479,62 @@ struct SearchReducerTests {
         #expect(!(SearchReducer.Pagination.exhausted.isLoading))
         #expect(!(SearchReducer.Pagination.failed.isLoading))
     }
+
+    @Test
+    func 결과가없는채_실패하면_화면전체가실패를알린다() {
+        var state = SearchReducer.State()
+        state.query = "파친코"
+        state.pagination = .failed
+
+        #expect(state.emptyState == .failed)
+        #expect(state.pagingFooter == nil)
+    }
+
+    @Test
+    func 결과가있는채_실패하면_하단에서만알린다() {
+        var state = SearchReducer.State()
+        state.query = "파친코"
+        state.books = [Book(isbn: "1", title: "파친코")]
+        state.pagination = .failed
+
+        #expect(state.emptyState == nil)
+        #expect(state.pagingFooter == .failed)
+    }
+
+    @Test
+    func 결과없이끝나면_결과없음을알린다() {
+        var state = SearchReducer.State()
+        state.query = "없는책"
+        state.pagination = .exhausted
+
+        #expect(state.emptyState == .noResults)
+    }
+
+    @Test
+    func 질의가비어있으면_결과없음을알리지않는다() {
+        var state = SearchReducer.State()
+        state.pagination = .exhausted
+
+        #expect(state.emptyState == nil)
+    }
+
+    @Test
+    func 첫페이지로딩중에는_하단표시를내지않는다() {
+        var state = SearchReducer.State()
+        state.query = "파친코"
+        state.pagination = .loading(isFirstPage: true)
+
+        #expect(state.pagingFooter == nil)
+        #expect(state.emptyState == nil)
+    }
+
+    @Test
+    func 다음페이지로딩중에는_하단에서알린다() {
+        var state = SearchReducer.State()
+        state.query = "파친코"
+        state.books = [Book(isbn: "1", title: "파친코")]
+        state.pagination = .loading(isFirstPage: false)
+
+        #expect(state.pagingFooter == .loading)
+    }
 }
