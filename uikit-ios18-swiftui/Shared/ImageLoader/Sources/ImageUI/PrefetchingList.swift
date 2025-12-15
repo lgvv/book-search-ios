@@ -1,7 +1,5 @@
 import SwiftUI
 
-import ImageLoader
-
 extension View {
     public func prefetchingCovers<Item: Identifiable>(
         _ items: [Item],
@@ -51,13 +49,13 @@ private struct CoverPrefetchModifier<Item: Identifiable>: ViewModifier where Ite
         let dropped = self.warmed.subtracting(wanted)
 
         if !added.isEmpty {
-            ImageLoader.prefetch(
+            ImagePrefetcher.prefetch(
                 Array(added),
                 targetPixelSize: ImagePixelSize.from(self.targetSize, displayScale: self.displayScale)
             )
         }
         if !dropped.isEmpty {
-            ImageLoader.cancelPrefetch(Array(dropped))
+            ImagePrefetcher.cancel(Array(dropped))
         }
         if !added.isEmpty || !dropped.isEmpty {
             self.warmed = wanted
