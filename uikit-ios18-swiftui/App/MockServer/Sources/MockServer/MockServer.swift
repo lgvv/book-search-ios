@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 
 import PersistenceInterface
 import SharedFoundation
@@ -38,7 +39,7 @@ public enum MockServer {
             ]
         )
 
-        Self.state.withValue { current in
+        Self.state.withLock { current in
             precondition(current == nil, "MockServer.install은 프로세스당 1회만 호출한다")
             current = router
         }
@@ -48,6 +49,6 @@ public enum MockServer {
         return URLSession(configuration: sessionConfiguration)
     }
 
-    static var router: MockRouter? { Self.state.value }
-    private static let state = LockIsolated<MockRouter?>(nil)
+    static var router: MockRouter? { Self.state.withLock { $0 } }
+    private static let state = Mutex<MockRouter?>(nil)
 }

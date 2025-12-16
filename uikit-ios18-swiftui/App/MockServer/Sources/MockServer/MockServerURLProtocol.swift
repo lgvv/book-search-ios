@@ -1,9 +1,10 @@
 import Foundation
+import Synchronization
 
 import SharedFoundation
 
 public final class MockServerURLProtocol: URLProtocol, @unchecked Sendable {
-    private let taskBox = LockIsolated<Task<Void, Never>?>(nil)
+    private let taskBox = Mutex<Task<Void, Never>?>(nil)
 
     override public class func canInit(with request: URLRequest) -> Bool {
         guard MockServer.router != nil,
@@ -46,11 +47,11 @@ public final class MockServerURLProtocol: URLProtocol, @unchecked Sendable {
                 self.client?.urlProtocol(self, didFailWithError: error)
             }
         }
-        self.taskBox.withValue { $0 = task }
+        self.taskBox.withLock { $0 = task }
     }
 
     override public func stopLoading() {
-        self.taskBox.withValue { task in
+        self.taskBox.withLock { task in
             task?.cancel()
             task = nil
         }
