@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 
 import PersistenceInterface
 import SharedFoundation
@@ -6,14 +7,14 @@ import StorageCatalog
 import RecentSearchCore
 
 final class DefaultRecentSearchRepository: RecentSearchRepository {
-    private let client: LockIsolated<UserDefaultsClient>
+    private let client: Mutex<UserDefaultsClient>
 
     init(client: UserDefaultsClient) {
-        self.client = LockIsolated(client)
+        self.client = Mutex(client)
     }
 
     func record(term: String, keeping maxCount: Int) async throws {
-        self.client.withValue { client in
+        self.client.withLock { client in
             var terms = self.load(from: client)
             terms.removeAll { $0 == term }
             terms.insert(term, at: 0)
@@ -22,11 +23,11 @@ final class DefaultRecentSearchRepository: RecentSearchRepository {
     }
 
     func list() async throws -> [String] {
-        self.client.withValue { self.load(from: $0) }
+        self.client.withLock { self.load(from: $0) }
     }
 
     func remove(term: String) async throws {
-        self.client.withValue { client in
+        self.client.withLock { client in
             var terms = self.load(from: client)
             terms.removeAll { $0 == term }
             self.save(terms, to: client)

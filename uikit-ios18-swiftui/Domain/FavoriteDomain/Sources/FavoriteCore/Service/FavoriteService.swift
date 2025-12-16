@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 
 import BookModel
 import DependencyResolver
@@ -34,7 +35,7 @@ private final class FavoriteWriteCoalescer: Sendable {
         var pending: [String: Write] = [:]
     }
 
-    private let state = LockIsolated(QueueState())
+    private let state = Mutex(QueueState())
     private let repository: any FavoriteRepository
     private let afterWrite: @Sendable (FavoriteWriteOutcome) async -> Void
 
@@ -47,7 +48,7 @@ private final class FavoriteWriteCoalescer: Sendable {
     }
 
     func submit(isbn: String, isFavorite: Bool, book: Book?) {
-        let first: Write? = state.withValue { state in
+        let first: Write? = state.withLock { state in
             if state.inFlight[isbn] != nil {
                 state.pending[isbn] = Write(isFavorite: isFavorite, book: book)
                 return nil
@@ -75,7 +76,7 @@ private final class FavoriteWriteCoalescer: Sendable {
                     didSucceed = false
                 }
 
-                let isSuperseded = state.withValue { state -> Bool in
+                let isSuperseded = state.withLock { state -> Bool in
                     guard let pending = state.pending[isbn] else { return false }
                     return !didSucceed || pending.isFavorite != write.isFavorite
                 }
@@ -88,7 +89,7 @@ private final class FavoriteWriteCoalescer: Sendable {
                     isSupersededByNewerIntent: isSuperseded
                 ))
 
-                current = state.withValue { state in
+                current = state.withLock { state in
                     guard let next = state.pending.removeValue(forKey: isbn) else {
                         state.inFlight[isbn] = nil
                         return nil
