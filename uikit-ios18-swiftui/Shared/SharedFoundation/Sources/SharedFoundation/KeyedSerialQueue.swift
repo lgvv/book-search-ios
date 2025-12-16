@@ -1,12 +1,13 @@
 import Foundation
+import Synchronization
 
 public final class KeyedSerialQueue<Key: Hashable & Sendable>: Sendable {
-    private let tails = LockIsolated([Key: Task<Void, Never>]())
+    private let tails = Mutex([Key: Task<Void, Never>]())
 
     public init() {}
 
     var trackedKeyCount: Int {
-        self.tails.value.count
+        self.tails.withLock { $0.count }
     }
 
     @discardableResult
@@ -14,7 +15,7 @@ public final class KeyedSerialQueue<Key: Hashable & Sendable>: Sendable {
         _ key: Key,
         _ operation: @escaping @Sendable () async throws -> R
     ) -> Task<R, any Error> {
-        self.tails.withValue { tails in
+        self.tails.withLock { tails in
             let previous = tails[key]
             let task = Task<R, any Error> {
                 await previous?.value
@@ -23,9 +24,9 @@ public final class KeyedSerialQueue<Key: Hashable & Sendable>: Sendable {
             let tail = Task<Void, Never> { _ = try? await task.value }
             tails[key] = tail
 
-            Task { [tails = self.tails] in
+            Task { [weak self] in
                 await tail.value
-                tails.withValue { current in
+                self?.tails.withLock { current in
                     if current[key] == tail {
                         current[key] = nil
                     }

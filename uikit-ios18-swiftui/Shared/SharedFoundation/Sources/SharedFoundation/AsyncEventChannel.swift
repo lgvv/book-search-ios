@@ -1,12 +1,13 @@
 import Foundation
+import Synchronization
 
 public final class AsyncEventChannel<Value: Sendable>: Sendable {
-    private let continuations = LockIsolated([UUID: AsyncStream<Value>.Continuation]())
+    private let continuations = Mutex([UUID: AsyncStream<Value>.Continuation]())
 
     public init() {}
 
     deinit {
-        self.continuations.withValue { continuations in
+        self.continuations.withLock { continuations in
             for continuation in continuations.values {
                 continuation.finish()
             }
@@ -14,7 +15,7 @@ public final class AsyncEventChannel<Value: Sendable>: Sendable {
     }
 
     public func send(_ value: Value) {
-        self.continuations.withValue { continuations in
+        self.continuations.withLock { continuations in
             for continuation in continuations.values {
                 continuation.yield(value)
             }
@@ -27,9 +28,9 @@ public final class AsyncEventChannel<Value: Sendable>: Sendable {
             of: Value.self,
             bufferingPolicy: .unbounded
         )
-        self.continuations.withValue { $0[id] = continuation }
+        self.continuations.withLock { $0[id] = continuation }
         continuation.onTermination = { [weak self] _ in
-            self?.continuations.withValue { _ = $0.removeValue(forKey: id) }
+            self?.continuations.withLock { _ = $0.removeValue(forKey: id) }
         }
         return stream
     }

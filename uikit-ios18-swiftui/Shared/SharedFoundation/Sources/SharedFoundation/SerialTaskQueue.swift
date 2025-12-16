@@ -1,7 +1,8 @@
 import Foundation
+import Synchronization
 
 public final class SerialTaskQueue: Sendable {
-    private let tail = LockIsolated<Task<Void, Never>?>(nil)
+    private let tail = Mutex<Task<Void, Never>?>(nil)
 
     public init() {}
 
@@ -9,7 +10,7 @@ public final class SerialTaskQueue: Sendable {
     public func enqueue<R: Sendable>(
         _ operation: @escaping @Sendable () async throws -> R
     ) -> Task<R, any Error> {
-        self.tail.withValue { tail in
+        self.tail.withLock { tail in
             let previous = tail
             let task = Task<R, any Error> {
                 await previous?.value

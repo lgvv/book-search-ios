@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 
 public final class AsyncValueChannel<Value: Sendable>: Sendable {
     private struct State {
@@ -6,14 +7,14 @@ public final class AsyncValueChannel<Value: Sendable>: Sendable {
         var continuations: [UUID: AsyncStream<Value>.Continuation] = [:]
     }
 
-    private let state: LockIsolated<State>
+    private let state: Mutex<State>
 
     public init(_ initialValue: Value) {
-        self.state = LockIsolated(State(value: initialValue))
+        self.state = Mutex(State(value: initialValue))
     }
 
     deinit {
-        self.state.withValue { state in
+        self.state.withLock { state in
             for continuation in state.continuations.values {
                 continuation.finish()
             }
@@ -21,11 +22,11 @@ public final class AsyncValueChannel<Value: Sendable>: Sendable {
     }
 
     public var value: Value {
-        self.state.withValue { $0.value }
+        self.state.withLock { $0.value }
     }
 
     public func send(_ value: Value) {
-        self.state.withValue { state in
+        self.state.withLock { state in
             state.value = value
             for continuation in state.continuations.values {
                 continuation.yield(value)
@@ -39,12 +40,12 @@ public final class AsyncValueChannel<Value: Sendable>: Sendable {
             of: Value.self,
             bufferingPolicy: .bufferingNewest(64)
         )
-        self.state.withValue { state in
+        self.state.withLock { state in
             continuation.yield(state.value)
             state.continuations[id] = continuation
         }
         continuation.onTermination = { [weak self] _ in
-            self?.state.withValue { _ = $0.continuations.removeValue(forKey: id) }
+            self?.state.withLock { _ = $0.continuations.removeValue(forKey: id) }
         }
         return stream
     }

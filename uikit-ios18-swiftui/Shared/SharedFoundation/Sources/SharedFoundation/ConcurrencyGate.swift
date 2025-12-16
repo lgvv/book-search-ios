@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 
 public final class ConcurrencyGate: Sendable {
     private struct Waiter {
@@ -13,12 +14,12 @@ public final class ConcurrencyGate: Sendable {
     }
 
     private let capacity: Int
-    private let state: LockIsolated<State>
+    private let state: Mutex<State>
 
     public init(capacity: Int) {
         let capacity = max(1, capacity)
         self.capacity = capacity
-        self.state = LockIsolated(State(available: capacity))
+        self.state = Mutex(State(available: capacity))
     }
 
     public static func forCPUBoundWork() -> ConcurrencyGate {
@@ -32,7 +33,7 @@ public final class ConcurrencyGate: Sendable {
     }
 
     var waiterCountForTesting: Int {
-        self.state.withValue { $0.waiters.count }
+        self.state.withLock { $0.waiters.count }
     }
 
     private func acquire() async throws {
@@ -40,7 +41,7 @@ public final class ConcurrencyGate: Sendable {
 
         let id = UUID()
         defer {
-            self.state.withValue { _ = $0.cancelledBeforeEnqueue.remove(id) }
+            self.state.withLock { _ = $0.cancelledBeforeEnqueue.remove(id) }
         }
 
         let didAcquire = await withTaskCancellationHandler {
@@ -50,7 +51,7 @@ public final class ConcurrencyGate: Sendable {
                     case enqueued
                     case cancelled
                 }
-                let verdict = self.state.withValue { state -> Verdict in
+                let verdict = self.state.withLock { state -> Verdict in
                     if state.cancelledBeforeEnqueue.remove(id) != nil {
                         return .cancelled
                     }
@@ -68,7 +69,7 @@ public final class ConcurrencyGate: Sendable {
                 }
             }
         } onCancel: {
-            let waiting = self.state.withValue { state -> CheckedContinuation<Bool, Never>? in
+            let waiting = self.state.withLock { state -> CheckedContinuation<Bool, Never>? in
                 guard let index = state.waiters.firstIndex(where: { $0.id == id }) else {
                     state.cancelledBeforeEnqueue.insert(id)
                     return nil
@@ -88,7 +89,7 @@ public final class ConcurrencyGate: Sendable {
     }
 
     private func release() {
-        let next = self.state.withValue { state -> CheckedContinuation<Bool, Never>? in
+        let next = self.state.withLock { state -> CheckedContinuation<Bool, Never>? in
             if state.waiters.isEmpty {
                 state.available = min(self.capacity, state.available + 1)
                 return nil
