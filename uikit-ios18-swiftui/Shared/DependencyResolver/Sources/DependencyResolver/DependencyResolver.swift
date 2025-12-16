@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 
 import SharedFoundation
 
@@ -31,13 +32,13 @@ public enum Resolver {
         var allowsTestFallback: Bool
     }
 
-    static let root = LockIsolated<ResolverValues?>(nil)
+    static let root = Mutex<ResolverValues?>(nil)
 
     @TaskLocal static var override: Override?
 
     public static func install(_ values: ResolverValues) {
         precondition(Self.override == nil, "override 스코프 안에서는 설치할 수 없다")
-        Self.root.withValue { current in
+        Self.root.withLock { current in
             precondition(current == nil, "Resolver는 프로세스당 1회만 설치한다")
             current = values
         }
@@ -53,7 +54,7 @@ public enum Resolver {
             }
             return K.testValue
         }
-        guard let value = Self.root.value?[key] else {
+        guard let value = Self.root.withLock({ $0 })?[key] else {
             preconditionFailure("live root에 없는 키: \(K.self). install 전이거나 조립 누락")
         }
         return value
@@ -67,7 +68,7 @@ public enum Resolver {
             if let current = Self.override {
                 return current
             }
-            return Override(values: Self.root.value ?? ResolverValues(), allowsTestFallback: false)
+            return Override(values: Self.root.withLock { $0 } ?? ResolverValues(), allowsTestFallback: false)
         }
     }
 }
