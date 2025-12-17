@@ -7,11 +7,13 @@ struct DeepLinkParser: Sendable {
         self.parsers = parsers
     }
 
-    static let `default` = DeepLinkParser(parsers: [
-        BookSearchSchemeParser(),
-        KakaoLinkParser(),
-        UniversalLinkParser(),
-    ])
+    static func standard(universalLinkHosts: Set<String>) -> Self {
+        DeepLinkParser(parsers: [
+            BookSearchSchemeParser(),
+            KakaoLinkParser(),
+            UniversalLinkParser(allowedHosts: universalLinkHosts),
+        ])
+    }
 
     func parse(_ url: URL) -> (any Route)? {
         for parser in self.parsers {

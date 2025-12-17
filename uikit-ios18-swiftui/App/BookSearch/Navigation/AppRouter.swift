@@ -6,7 +6,9 @@ import FavoriteCore
 
 @MainActor
 final class AppRouter: Navigator {
-    let rootViewController = UITabBarController()
+    var rootViewController: UIViewController { self.tabBarController }
+
+    private let tabBarController = UITabBarController()
 
     private var navigationControllers: [AppTab: UINavigationController] = [:]
     private let scenes: SceneFactory
@@ -22,9 +24,21 @@ final class AppRouter: Navigator {
 
     private let favoriteClient: FavoriteClient
 
-    init(scenes: SceneFactory, favoriteClient: FavoriteClient) {
+    private lazy var deepLinks = DeepLinkHandler(
+        navigator: self,
+        parser: .standard(universalLinkHosts: self.universalLinkHosts)
+    )
+
+    private let universalLinkHosts: Set<String>
+
+    init(
+        scenes: SceneFactory,
+        favoriteClient: FavoriteClient,
+        universalLinkHosts: Set<String>
+    ) {
         self.scenes = scenes
         self.favoriteClient = favoriteClient
+        self.universalLinkHosts = universalLinkHosts
     }
 
     deinit {
@@ -41,7 +55,7 @@ final class AppRouter: Navigator {
             )
             self.navigationControllers[tab] = UINavigationController(rootViewController: root)
         }
-        self.rootViewController.viewControllers = AppTab.allCases.compactMap {
+        self.tabBarController.viewControllers = AppTab.allCases.compactMap {
             self.navigationControllers[$0]
         }
 
@@ -57,11 +71,15 @@ final class AppRouter: Navigator {
                     : "즐겨찾기에서 제거하지 못했습니다"
                 self.toasts.show(
                     message,
-                    over: self.rootViewController.view,
-                    bottomInset: self.rootViewController.tabBar.bounds.height + 16
+                    over: self.tabBarController.view,
+                    bottomInset: self.tabBarController.tabBar.bounds.height + 16
                 )
             }
         }
+    }
+
+    func handle(deepLink url: URL) {
+        self.deepLinks.handle(url)
     }
 
     func navigate(to route: any Route) {
@@ -73,7 +91,7 @@ final class AppRouter: Navigator {
         self.routingTask?.cancel()
         self.routingTask = Task { [weak self] in
             guard let self else { return }
-            let session = self.loading.begin(over: self.rootViewController.topmostPresentedViewController.view)
+            let session = self.loading.begin(over: self.tabBarController.topmostPresentedViewController.view)
             defer { self.loading.end(session) }
 
             do {
@@ -104,7 +122,7 @@ final class AppRouter: Navigator {
                 self?.navigate(to: route)
             }
         }
-        self.rootViewController.presentAlert(alert)
+        self.tabBarController.presentAlert(alert)
     }
 
     func pop() {
@@ -112,7 +130,7 @@ final class AppRouter: Navigator {
     }
 
     func dismiss() {
-        self.rootViewController.dismiss(animated: true)
+        self.tabBarController.dismiss(animated: true)
     }
 
     private func present(
@@ -126,8 +144,8 @@ final class AppRouter: Navigator {
             self.currentNavigationController.pushViewController(viewController, animated: true)
 
         case .selectTab(let tab):
-            self.rootViewController.dismiss(animated: false)
-            self.rootViewController.selectedIndex = tab.rawValue
+            self.tabBarController.dismiss(animated: false)
+            self.tabBarController.selectedIndex = tab.rawValue
 
         case .modal:
             guard let viewController else { return }
@@ -144,21 +162,21 @@ final class AppRouter: Navigator {
         )
         let wrapped = UINavigationController(rootViewController: viewController)
 
-        if self.rootViewController.presentedViewController != nil {
-            self.rootViewController.dismiss(animated: false) { [weak self] in
+        if self.tabBarController.presentedViewController != nil {
+            self.tabBarController.dismiss(animated: false) { [weak self] in
                 guard let self, generation == self.routeGeneration else { return }
-                self.rootViewController.present(wrapped, animated: true)
+                self.tabBarController.present(wrapped, animated: true)
             }
         } else {
-            self.rootViewController.present(wrapped, animated: true)
+            self.tabBarController.present(wrapped, animated: true)
         }
     }
 
     private var currentNavigationController: UINavigationController {
-        if let presented = self.rootViewController.presentedViewController as? UINavigationController {
+        if let presented = self.tabBarController.presentedViewController as? UINavigationController {
             return presented
         }
-        return self.rootViewController.selectedViewController as? UINavigationController
+        return self.tabBarController.selectedViewController as? UINavigationController
             ?? self.navigationControllers[.search]!
     }
 

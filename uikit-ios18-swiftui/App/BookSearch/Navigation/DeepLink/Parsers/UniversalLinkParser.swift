@@ -3,7 +3,7 @@ import Foundation
 struct UniversalLinkParser: DeepLinkParsing {
     private let allowedHosts: Set<String>
 
-    init(allowedHosts: Set<String> = AppEnvironment.universalLinkHosts) {
+    init(allowedHosts: Set<String>) {
         self.allowedHosts = allowedHosts
     }
 
