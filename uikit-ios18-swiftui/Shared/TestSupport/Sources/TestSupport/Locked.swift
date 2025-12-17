@@ -1,24 +1,19 @@
-import Foundation
+import os
 
-public final class Locked<Value>: @unchecked Sendable {
-    private let lock = NSLock()
-    private var _value: Value
+public struct Locked<Value>: Sendable {
+    private let storage: OSAllocatedUnfairLock<Value>
 
     public init(_ value: Value) {
-        self._value = value
+        self.storage = OSAllocatedUnfairLock(uncheckedState: value)
     }
 
     public var value: Value {
-        self.lock.lock()
-        defer { self.lock.unlock() }
-        return self._value
+        self.storage.withLockUnchecked { $0 }
     }
 
     @discardableResult
     public func withValue<R>(_ operation: (inout Value) throws -> R) rethrows -> R {
-        self.lock.lock()
-        defer { self.lock.unlock() }
-        return try operation(&self._value)
+        try self.storage.withLockUnchecked(operation)
     }
 }
 
