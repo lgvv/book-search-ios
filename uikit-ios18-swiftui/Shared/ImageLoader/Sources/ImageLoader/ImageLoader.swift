@@ -1,4 +1,5 @@
 import UIKit
+import os
 
 import PersistenceInterface
 import SharedFoundation
@@ -7,8 +8,8 @@ struct ImageLoaderCore: Sendable {
     private let engine: ImageEngine
     private let pipeline: ImageLoadPipeline
 
-    private let prefetchTasks = LockIsolated([URL: (id: UUID, task: Task<Void, Never>)]())
-    private let revalidating = LockIsolated(Set<URL>())
+    private let prefetchTasks = OSAllocatedUnfairLock(initialState: [URL: (id: UUID, task: Task<Void, Never>)]())
+    private let revalidating = OSAllocatedUnfairLock(initialState: Set<URL>())
 
     init(engine: ImageEngine, diskClient: FileClient, diskConfiguration: ImageDiskCacheConfiguration) {
         self.engine = engine
@@ -66,11 +67,11 @@ struct ImageLoaderCore: Sendable {
     }
 
     private func revalidate(_ url: URL, etag: String?, generation: Int, targetPixelSize: CGSize?) {
-        let inserted = self.revalidating.withValue { $0.insert(url).inserted }
+        let inserted = self.revalidating.withLockUnchecked { $0.insert(url).inserted }
         guard inserted else { return }
 
         Task { [pipeline, revalidating] in
-            defer { revalidating.withValue { _ = $0.remove(url) } }
+            defer { revalidating.withLockUnchecked { _ = $0.remove(url) } }
             _ = try? await pipeline.load(
                 ImageLoadContext(
                     url: url,
@@ -89,7 +90,7 @@ struct ImageLoaderCore: Sendable {
             enginePrefetch(urls)
             return
         }
-        self.prefetchTasks.withValue { tasks in
+        self.prefetchTasks.withLockUnchecked { tasks in
             for url in urls where tasks[url] == nil {
                 let id = UUID()
                 tasks[url] = (id, Task {
@@ -100,7 +101,7 @@ struct ImageLoaderCore: Sendable {
                         intent: .prefetch,
                         targetPixelSize: targetPixelSize
                     )
-                    self.prefetchTasks.withValue { current in
+                    self.prefetchTasks.withLockUnchecked { current in
                         if current[url]?.id == id {
                             current[url] = nil
                         }
@@ -112,7 +113,7 @@ struct ImageLoaderCore: Sendable {
 
     func cancelPrefetch(_ urls: [URL]) {
         engine.cancelPrefetch?(urls)
-        self.prefetchTasks.withValue { tasks in
+        self.prefetchTasks.withLockUnchecked { tasks in
             for url in urls {
                 tasks.removeValue(forKey: url)?.task.cancel()
             }
@@ -121,14 +122,14 @@ struct ImageLoaderCore: Sendable {
 }
 
 package enum ImageLoader {
-    private static let store = LockIsolated<ImageLoaderCore?>(nil)
+    private static let store = OSAllocatedUnfairLock<ImageLoaderCore?>(initialState: nil)
 
     package static func bootstrap(
         engine: ImageEngine,
         diskClient: FileClient,
         diskConfiguration: ImageDiskCacheConfiguration = .default
     ) {
-        store.withValue { current in
+        store.withLockUnchecked { current in
             precondition(current == nil, "ImageLoader는 프로세스당 1회만 부트스트랩한다")
             current = ImageLoaderCore(engine: engine, diskClient: diskClient, diskConfiguration: diskConfiguration)
         }
@@ -151,7 +152,7 @@ package enum ImageLoader {
     }
 
     private static func core() -> ImageLoaderCore {
-        guard let core = store.value else {
+        guard let core = store.withLockUnchecked({ $0 }) else {
             fatalError("ImageLoader 미조립. App에서 bootstrap(engine:) 호출 필요")
         }
         return core

@@ -1,4 +1,5 @@
 import UIKit
+import os
 
 import SharedFoundation
 
@@ -14,7 +15,7 @@ extension ImagePipelineStage {
             let task: Task<ImageLoadOutcome, Error>
             var waiters: Int
         }
-        let inFlight = LockIsolated([Key: InFlight]())
+        let inFlight = OSAllocatedUnfairLock(initialState: [Key: InFlight]())
 
         return Self { context, next in
             guard context.intent != .revalidate else {
@@ -26,7 +27,7 @@ extension ImagePipelineStage {
                 behavior: context.behavior,
                 targetPixelSize: context.targetPixelSize
             )
-            let entry: InFlight = inFlight.withValue { map in
+            let entry: InFlight = inFlight.withLockUnchecked { map in
                 if var existing = map[key] {
                     existing.waiters += 1
                     map[key] = existing
@@ -41,15 +42,15 @@ extension ImagePipelineStage {
                 return created
             }
 
-            let didLeave = LockIsolated(false)
+            let didLeave = OSAllocatedUnfairLock(initialState: false)
             let leaveOnce: @Sendable () -> Void = {
-                let isFirst = didLeave.withValue { left -> Bool in
+                let isFirst = didLeave.withLockUnchecked { left -> Bool in
                     if left { return false }
                     left = true
                     return true
                 }
                 guard isFirst else { return }
-                inFlight.withValue { map in
+                inFlight.withLockUnchecked { map in
                     guard var current = map[key], current.id == entry.id else { return }
                     current.waiters -= 1
                     if current.waiters <= 0 {

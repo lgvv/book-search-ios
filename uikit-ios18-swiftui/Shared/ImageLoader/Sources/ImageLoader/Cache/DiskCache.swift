@@ -1,4 +1,5 @@
 import CryptoKit
+import os
 import Foundation
 
 import PersistenceInterface
@@ -56,15 +57,15 @@ final class DiskCache: Sendable {
 
     private let client: FileClient
     private let configuration: ImageDiskCacheConfiguration
-    private let state: LockIsolated<State>
+    private let state: OSAllocatedUnfairLock<State>
     private let io: FileIOQueue
 
     private let readiness: Task<Void, Never>
 
-    private let isFlushScheduled = LockIsolated(false)
+    private let isFlushScheduled = OSAllocatedUnfairLock(initialState: false)
 
     init(client: FileClient, configuration: ImageDiskCacheConfiguration) {
-        let state = LockIsolated(State())
+        let state = OSAllocatedUnfairLock(initialState: State())
         let io = FileIOQueue(label: "com.booksearch.imagecache.io")
 
         self.client = client
@@ -81,7 +82,7 @@ final class DiskCache: Sendable {
         await self.readiness.value
         let key = self.key(for: url)
 
-        let metadata: Metadata? = self.state.withValue { state in
+        let metadata: Metadata? = self.state.withLockUnchecked { state in
             guard var metadata = state.entries[key] else { return nil }
             metadata.lastAccessedAt = Date()
             state.entries[key] = metadata
@@ -94,7 +95,7 @@ final class DiskCache: Sendable {
         let data = await self.io.run { [client] in client.data(fileKey) }
 
         guard let data else {
-            self.state.withValue { state in
+            self.state.withLockUnchecked { state in
                 if state.entries[key]?.generation == metadata.generation {
                     state.entries[key] = nil
                 }
@@ -119,7 +120,7 @@ final class DiskCache: Sendable {
         await self.readiness.value
         let key = self.key(for: url)
 
-        let generation = self.state.withValue { state -> Int in
+        let generation = self.state.withLockUnchecked { state -> Int in
             let next = state.nextGeneration
             state.nextGeneration += 1
             state.pending[key, default: []].insert(next)
@@ -137,7 +138,7 @@ final class DiskCache: Sendable {
         }
 
         let now = Date()
-        let obsolete: [String] = self.state.withValue { state in
+        let obsolete: [String] = self.state.withLockUnchecked { state in
             state.pending[key]?.remove(generation)
             if state.pending[key]?.isEmpty == true {
                 state.pending[key] = nil
@@ -183,7 +184,7 @@ final class DiskCache: Sendable {
 
     func markRevalidated(for url: URL, etag: String?, generation: Int) {
         let key = self.key(for: url)
-        self.state.withValue { state in
+        self.state.withLockUnchecked { state in
             guard var metadata = state.entries[key], metadata.generation == generation else { return }
             metadata.storedAt = Date()
             if let etag {
@@ -218,7 +219,7 @@ final class DiskCache: Sendable {
     private static func prepare(
         client: FileClient,
         io: FileIOQueue,
-        state: LockIsolated<State>
+        state: OSAllocatedUnfairLock<State>
     ) async {
         _ = await io.run { () -> (discardedManifest: Bool, removed: Int) in
             let manifest = client.data(Self.manifestKey)
@@ -230,7 +231,7 @@ final class DiskCache: Sendable {
             let highestOnDisk = existing.compactMap(Self.generation(ofFileKey:)).max() ?? 0
             let highestInManifest = entries.values.map(\.generation).max() ?? 0
 
-            let live: Set<String> = state.withValue { state in
+            let live: Set<String> = state.withLockUnchecked { state in
                 state.entries = entries
                 state.nextGeneration = max(highestInManifest, highestOnDisk) + 1
 
@@ -260,7 +261,7 @@ final class DiskCache: Sendable {
     }
 
     private func scheduleManifestFlush() {
-        let alreadyScheduled = self.isFlushScheduled.withValue { scheduled -> Bool in
+        let alreadyScheduled = self.isFlushScheduled.withLockUnchecked { scheduled -> Bool in
             if scheduled { return true }
             scheduled = true
             return false
@@ -268,10 +269,10 @@ final class DiskCache: Sendable {
         guard !alreadyScheduled else { return }
 
         self.io.enqueue { [isFlushScheduled, state, client] in
-            isFlushScheduled.withValue { $0 = false }
+            isFlushScheduled.withLockUnchecked { $0 = false }
             let manifest = Manifest(
                 schemaVersion: Manifest.currentSchemaVersion,
-                entries: state.value.entries
+                entries: state.withLockUnchecked { $0.entries }
             )
             guard let encoded = try? JSONEncoder().encode(manifest) else { return }
             try? client.setData(encoded, Self.manifestKey)
