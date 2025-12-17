@@ -22,9 +22,9 @@ final class AppRouter: Navigator {
 
     private let favoriteClient: FavoriteClient
 
-    init(container: ApplicationContainer) {
-        self.scenes = SceneFactory(container: container)
-        self.favoriteClient = container.favoriteClient
+    init(scenes: SceneFactory, favoriteClient: FavoriteClient) {
+        self.scenes = scenes
+        self.favoriteClient = favoriteClient
     }
 
     deinit {
@@ -168,13 +168,13 @@ final class AppRouter: Navigator {
         }
         switch tab {
         case .search:
-            return self.scenes.makeSearchScene(onSelectBook: onSelectBook)
+            return self.scenes.makeSearchScene(onSelectBook)
         case .favorite:
-            return self.scenes.makeFavoriteScene(onSelectBook: onSelectBook)
+            return self.scenes.makeFavoriteScene(onSelectBook)
         case .memo:
-            return self.scenes.makeMemoScene(onSelectBook: onSelectBook)
+            return self.scenes.makeMemoScene(onSelectBook)
         case .recentlyViewed:
-            return self.scenes.makeRecentlyViewedScene(onSelectBook: onSelectBook)
+            return self.scenes.makeRecentlyViewedScene(onSelectBook)
         }
     }
 }

@@ -2,77 +2,54 @@ import UIKit
 
 import BookDetailFeatureInterface
 import BookModel
-import FavoriteFeature
-import FavoriteFeatureInterface
-import MemoFeature
-import MemoFeatureInterface
-import RecentlyViewedFeature
-import RecentlyViewedFeatureInterface
-import SearchFeature
-import SearchFeatureInterface
 
 @MainActor
-final class SceneFactory {
-    private let container: ApplicationContainer
-
-    init(container: ApplicationContainer) {
-        self.container = container
-    }
-
-    func makeSearchScene(onSelectBook: @escaping (Book) -> Void) -> UIViewController {
-        self.container.searchSceneBuilder.makeScene { action in
-            switch action {
-            case let .didSelectBook(book):
-                onSelectBook(book)
-            }
-        }
-    }
-
-    func makeFavoriteScene(onSelectBook: @escaping (Book) -> Void) -> UIViewController {
-        self.container.favoriteSceneBuilder.makeScene { action in
-            switch action {
-            case let .didSelectBook(book):
-                onSelectBook(book)
-            }
-        }
-    }
-
-    func makeMemoScene(onSelectBook: @escaping (Book) -> Void) -> UIViewController {
-        self.container.memoSceneBuilder.makeScene { action in
-            switch action {
-            case let .didSelectBook(book):
-                onSelectBook(book)
-            }
-        }
-    }
-
-    func makeRecentlyViewedScene(onSelectBook: @escaping (Book) -> Void) -> UIViewController {
-        self.container.recentlyViewedSceneBuilder.makeScene { action in
-            switch action {
-            case let .didSelectBook(book):
-                onSelectBook(book)
-            }
-        }
-    }
-
-    func makeBookDetailScene(
+struct SceneFactory {
+    var makeSearchScene: (_ onSelectBook: @escaping (Book) -> Void) -> UIViewController
+    var makeFavoriteScene: (_ onSelectBook: @escaping (Book) -> Void) -> UIViewController
+    var makeMemoScene: (_ onSelectBook: @escaping (Book) -> Void) -> UIViewController
+    var makeRecentlyViewedScene: (_ onSelectBook: @escaping (Book) -> Void) -> UIViewController
+    var makeBookDetailScene: (
         _ payload: BookDetailPayload,
-        onRequestMemoEdit: @escaping (Book) -> Void
-    ) -> UIViewController {
-        self.container.bookDetailSceneBuilder.makeScene(payload) { action in
-            switch action {
-            case let .didRequestMemoEdit(book):
-                onRequestMemoEdit(book)
-            }
-        }
-    }
+        _ onRequestMemoEdit: @escaping (Book) -> Void
+    ) -> UIViewController
+    var makeMemoEditScene: (
+        _ book: Book,
+        _ onFinish: @escaping () -> Void
+    ) -> UIViewController
 
-    func makeMemoEditScene(book: Book, onFinish: @escaping () -> Void) -> UIViewController {
-        self.container.memoEditSceneBuilder.makeScene(book: book) { action in
-            switch action {
-            case .didFinish:
-                onFinish()
-            }
-        }
+    init(
+        makeSearchScene: @escaping (_ onSelectBook: @escaping (Book) -> Void) -> UIViewController,
+        makeFavoriteScene: @escaping (_ onSelectBook: @escaping (Book) -> Void) -> UIViewController,
+        makeMemoScene: @escaping (_ onSelectBook: @escaping (Book) -> Void) -> UIViewController,
+        makeRecentlyViewedScene: @escaping (_ onSelectBook: @escaping (Book) -> Void) -> UIViewController,
+        makeBookDetailScene: @escaping (
+            _ payload: BookDetailPayload,
+            _ onRequestMemoEdit: @escaping (Book) -> Void
+        ) -> UIViewController,
+        makeMemoEditScene: @escaping (
+            _ book: Book,
+            _ onFinish: @escaping () -> Void
+        ) -> UIViewController
+    ) {
+        self.makeSearchScene = makeSearchScene
+        self.makeFavoriteScene = makeFavoriteScene
+        self.makeMemoScene = makeMemoScene
+        self.makeRecentlyViewedScene = makeRecentlyViewedScene
+        self.makeBookDetailScene = makeBookDetailScene
+        self.makeMemoEditScene = makeMemoEditScene
+    }
+}
+
+extension SceneFactory {
+    static var testValue: Self {
+        Self(
+            makeSearchScene: { _ in fatalError("unimplemented: SceneFactory.makeSearchScene") },
+            makeFavoriteScene: { _ in fatalError("unimplemented: SceneFactory.makeFavoriteScene") },
+            makeMemoScene: { _ in fatalError("unimplemented: SceneFactory.makeMemoScene") },
+            makeRecentlyViewedScene: { _ in fatalError("unimplemented: SceneFactory.makeRecentlyViewedScene") },
+            makeBookDetailScene: { _, _ in fatalError("unimplemented: SceneFactory.makeBookDetailScene") },
+            makeMemoEditScene: { _, _ in fatalError("unimplemented: SceneFactory.makeMemoEditScene") }
+        )
     }
 }

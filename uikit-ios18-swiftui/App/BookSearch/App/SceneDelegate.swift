@@ -16,7 +16,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             preconditionFailure("ApplicationContainer가 없다. didFinishLaunching이 먼저 끝나야 한다")
         }
 
-        let router = AppRouter(container: container)
+        let router = AppRouter(scenes: .live(container: container), favoriteClient: container.favoriteClient)
         self.router = router
         self.deepLinkHandler = DeepLinkHandler(navigator: router)
 

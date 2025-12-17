@@ -9,7 +9,7 @@ struct MemoEditRoute: Route {
 
     func makeViewController(context: RouteContext) async -> UIViewController? {
         let navigator = context.navigator
-        return context.scenes.makeMemoEditScene(book: self.book) { [weak navigator] in
+        return context.scenes.makeMemoEditScene(self.book) { [weak navigator] in
             navigator?.pop()
         }
     }
