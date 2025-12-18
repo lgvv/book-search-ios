@@ -141,6 +141,7 @@ final class AppRouter: Navigator {
         switch presentation {
         case .push:
             guard let viewController else { return }
+            viewController.hidesBottomBarWhenPushed = true
             self.currentNavigationController.pushViewController(viewController, animated: true)
 
         case .selectTab(let tab):
