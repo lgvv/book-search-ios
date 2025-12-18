@@ -195,4 +195,25 @@ struct FavoriteWriteCoalescerTests {
         #expect(self.repository.writeCalls.count == 1)
         gate.open()
     }
+
+    @Test
+    func 성공한쓰기위에더최신의도가대기중이면_그결과는값스트림에내보내지않는다() async {
+        await self.completeInitialLoad()
+        let gate = self.repository.blockWrites(for: pachinko.isbn)
+        let recorder = AsyncValueRecorder(self.sut.observe())
+
+        await self.sut.add(pachinko)
+        await gate.waitUntilArrived()
+        await self.sut.remove(isbn: pachinko.isbn)
+
+        gate.open()
+
+        let didSettle = await waitUntil { [repository] in repository?.writeCalls.count == 2 }
+        #expect(didSettle)
+        let stayedOut = await stayFalse(
+            { recorder.values.contains { $0.value?.isEmpty == false } },
+            for: 0.2
+        )
+        #expect(stayedOut)
+    }
 }
