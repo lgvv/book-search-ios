@@ -7,6 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0E7D7D436BDCB65828866D62 /* TestSupport in Frameworks */ = {isa = PBXBuildFile; productRef = 130D19949800ABE29593C370 /* TestSupport */; };
+		74D8DDD2EFEBDB6054EC5EC9 /* DependencyResolver in Frameworks */ = {isa = PBXBuildFile; productRef = 4679B7F6813E6ED382B8BCD1 /* DependencyResolver */; };
+		A4662494E0281152A3276C48 /* BookModel in Frameworks */ = {isa = PBXBuildFile; productRef = 82DD411D75E83ACB597220B4 /* BookModel */; };
+		5AB064ECABA89490B63BBEB1 /* BookDetailFeatureInterface in Frameworks */ = {isa = PBXBuildFile; productRef = BE8E488FCBA3B9E1D6893CC5 /* BookDetailFeatureInterface */; };
+		D51005A3CCE71B728CF5A7A7 /* FavoriteCore in Frameworks */ = {isa = PBXBuildFile; productRef = 24BEFE3E1D59FBFD6801B4E2 /* FavoriteCore */; };
+		0199375044E47E301464062A /* MemoCore in Frameworks */ = {isa = PBXBuildFile; productRef = 6B867FFAAD607F6D3E9A72B1 /* MemoCore */; };
+		64EAA73918805F4EBCBC1E17 /* MemoModel in Frameworks */ = {isa = PBXBuildFile; productRef = EE0D12A73A44F412B443B731 /* MemoModel */; };
+		3F1D7EED8030E7B4516FC2E9 /* RecentlyViewedCore in Frameworks */ = {isa = PBXBuildFile; productRef = 85E9B2CCD83476641CBF4464 /* RecentlyViewedCore */; };
+		CC5EF0F74190C88C28FAED28 /* SharedFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = DB92DC7798467BE1EDBEFFE2 /* SharedFoundation */; };
 		094B427C8E7A4046A7E336F5 /* StorageCatalog in Frameworks */ = {isa = PBXBuildFile; productRef = 778CCA573F494FB7A7C7CF64 /* StorageCatalog */; };
 		825F2463E835462E9DA37693 /* RemoteConfig in Frameworks */ = {isa = PBXBuildFile; productRef = 5D6C0155C6BA4ADEBD1B09ED /* RemoteConfig */; };
 		6FF27909280244D49B010029 /* RemoteConfigInterface in Frameworks */ = {isa = PBXBuildFile; productRef = AAE21B7316E54DC9B8245001 /* RemoteConfigInterface */; };
@@ -146,6 +155,15 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0E7D7D436BDCB65828866D62 /* TestSupport in Frameworks */,
+				74D8DDD2EFEBDB6054EC5EC9 /* DependencyResolver in Frameworks */,
+				A4662494E0281152A3276C48 /* BookModel in Frameworks */,
+				5AB064ECABA89490B63BBEB1 /* BookDetailFeatureInterface in Frameworks */,
+				D51005A3CCE71B728CF5A7A7 /* FavoriteCore in Frameworks */,
+				0199375044E47E301464062A /* MemoCore in Frameworks */,
+				64EAA73918805F4EBCBC1E17 /* MemoModel in Frameworks */,
+				3F1D7EED8030E7B4516FC2E9 /* RecentlyViewedCore in Frameworks */,
+				CC5EF0F74190C88C28FAED28 /* SharedFoundation in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -186,6 +204,42 @@
 
 
 /* Begin XCSwiftPackageProductDependency section */
+		130D19949800ABE29593C370 /* TestSupport */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = TestSupport;
+		};
+		4679B7F6813E6ED382B8BCD1 /* DependencyResolver */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = DependencyResolver;
+		};
+		82DD411D75E83ACB597220B4 /* BookModel */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = BookModel;
+		};
+		BE8E488FCBA3B9E1D6893CC5 /* BookDetailFeatureInterface */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = BookDetailFeatureInterface;
+		};
+		24BEFE3E1D59FBFD6801B4E2 /* FavoriteCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FavoriteCore;
+		};
+		6B867FFAAD607F6D3E9A72B1 /* MemoCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MemoCore;
+		};
+		EE0D12A73A44F412B443B731 /* MemoModel */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MemoModel;
+		};
+		85E9B2CCD83476641CBF4464 /* RecentlyViewedCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = RecentlyViewedCore;
+		};
+		DB92DC7798467BE1EDBEFFE2 /* SharedFoundation */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SharedFoundation;
+		};
 		778CCA573F494FB7A7C7CF64 /* StorageCatalog */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = StorageCatalog;
@@ -361,6 +415,17 @@
 			);
 			fileSystemSynchronizedGroups = (
 				97808D72EC1AB78D942CF883 /* BookSearchTests */,
+			);
+			packageProductDependencies = (
+				130D19949800ABE29593C370 /* TestSupport */,
+				4679B7F6813E6ED382B8BCD1 /* DependencyResolver */,
+				82DD411D75E83ACB597220B4 /* BookModel */,
+				BE8E488FCBA3B9E1D6893CC5 /* BookDetailFeatureInterface */,
+				24BEFE3E1D59FBFD6801B4E2 /* FavoriteCore */,
+				6B867FFAAD607F6D3E9A72B1 /* MemoCore */,
+				EE0D12A73A44F412B443B731 /* MemoModel */,
+				85E9B2CCD83476641CBF4464 /* RecentlyViewedCore */,
+				DB92DC7798467BE1EDBEFFE2 /* SharedFoundation */,
 			);
 			name = BookSearchTests;
 			productName = BookSearchTests;
