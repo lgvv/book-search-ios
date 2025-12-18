@@ -10,13 +10,16 @@ public enum DateDisplay {
     }
 
     public static func relative(_ date: Date) -> String {
-        date.formatted(
-            .relative(presentation: .named, unitsStyle: .wide)
-                .locale(Self.displayLocale)
-        )
+        date.formatted(Self.relativeStyle)
     }
 
     private static let displayLocale = Locale(identifier: "ko_KR")
+
+    private static let relativeStyle = Date.RelativeFormatStyle(
+        presentation: .named,
+        unitsStyle: .wide
+    )
+    .locale(Self.displayLocale)
 
     private static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
