@@ -114,6 +114,23 @@ struct RequestIDMiddlewareTests {
     }
 
     @Test
+    func 호출부가다른대소문자표기로ID를넣었어도_덮어쓰지않는다() async throws {
+        let transport = StubTransport()
+        let sut = HTTPClient(transport: transport, middlewares: [RequestIDMiddleware()])
+        let request = HTTPRequest(
+            method: .get,
+            url: URL(string: "https://api.booksearch.dev/books")!,
+            headers: ["x-request-id": "호출부-ID"]
+        )
+
+        _ = try await sut.response(for: request)
+
+        let headers = transport.receivedRequests.value.first?.headers
+        #expect(headers?["x-request-id"] == "호출부-ID")
+        #expect(headers?[RequestIDMiddleware.headerName] == nil)
+    }
+
+    @Test
     func 요청이두번나가면_서로다른ID를싣는다() async throws {
         let transport = StubTransport()
         let sut = HTTPClient(transport: transport, middlewares: [RequestIDMiddleware()])
